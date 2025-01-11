@@ -1,39 +1,51 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+<div align="center">
+  <h1>🌶️ An Easy-to-Use, Opinionated State Management Library For Scalable Flutter Apps 🌶️</h1>
+    <!-- todo: banner -->
+  <br/>
+</div>
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages).
+## Features 🎉
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages).
--->
+- abc
+- abc
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+## How to Use 🚀
 
-## Features
+### 1. Create a Trent file
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+Any location works, but for organization, a `trents` directory might be nice, in case your want multiple for different features
 
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
-
-## Usage
-
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
-
-```dart
-const like = 'sample';
+```txt
+~/lib/trents/calculator_trent.dart
 ```
 
-## Additional information
+Add the package import
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+```dart
+import 'package:trent/trent.dart';
+```
+
+### 2. Add Your States
+
+A base state
+
+```dart
+class CalculatorStates extends Equatable {
+  @override
+  List<Object> get props => [];
+}
+```
+
+All your calculator states extend from the base state
+
+```dart
+todo
+```
+
+## Additional Info 📣
+
+- The package is always open to [improvements](https://github.com/mattrltrent/trent/issues), [suggestions](mailto:me@matthewtrent.me), and [additions](https://github.com/mattrltrent/trent/pulls)!
+
+- I'll look through PRs and issues as soon as I can!
+
+- [Learn about me](https://matthewtrent.me).
