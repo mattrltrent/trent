@@ -1,0 +1,15 @@
+targets:
+  $default:
+    builders:
+      trent|state_machine:
+        options:
+          # You can add custom options here if needed in the future
+
+builders:
+  state_machine:
+    import: "package:trent/generation/build.dart" # Path to your builder entry
+    builder_factories: ["stateMachineBuilder"]    # Builder function
+    build_extensions: {".dart": [".state_machine.g.dart"]}      # Ensure it outputs .g.dart
+    applies_builders: ["source_gen:combining_builder"]
+
+
