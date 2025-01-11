@@ -1,11 +1,11 @@
 import 'package:trent/trent.dart';
 
-class TestStateMachineTypes extends Equatable {
+class AuthTypes extends Equatable {
   @override
   List<Object> get props => [];
 }
 
-class A extends TestStateMachineTypes {
+class A extends AuthTypes {
   final int value;
   A(this.value);
 
@@ -13,7 +13,7 @@ class A extends TestStateMachineTypes {
   List<Object> get props => [value];
 }
 
-class B extends TestStateMachineTypes {
+class B extends AuthTypes {
   final int value;
   B(this.value);
 
@@ -21,10 +21,16 @@ class B extends TestStateMachineTypes {
   List<Object> get props => [];
 }
 
-class C extends TestStateMachineTypes {}
+class C extends AuthTypes {}
 
-class TestStateMachine extends Trent<TestStateMachineTypes> {
-  TestStateMachine() : super(A(1));
+class AuthTrent extends Trent<AuthTypes> {
+  AuthTrent() : super(A(1));
+
+  void callSomeBizLogic() {
+    print("Doing some biz logic");
+    // data calls
+    emit(C());
+  }
 
   void incAState() => getExStateAs<A>().match(some: (val) {
         print("incing!");
@@ -44,6 +50,8 @@ class TestStateMachine extends Trent<TestStateMachineTypes> {
   void switchToB() => emit(B(2));
 
   void alertA55() => alert(A(55));
+
+  void alertB55() => alert(B(55));
 
   void setA200() => set(A(200));
 

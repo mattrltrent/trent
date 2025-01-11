@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:trent/trent.dart';
 
-/// A generic Digester widget that maps states of a StateMachine to Widgets.
-class Digester<StateMachine extends BaseStateMachine<State>, State> extends StatelessWidget {
+/// A generic Digester widget that listens to state changes from a Trent.
+class Digester<Trent extends Trents<State>, State> extends StatelessWidget {
   final void Function(DigesterStateWidgetMapper<State> mapper) _handlers;
 
   Digester({
@@ -10,8 +10,8 @@ class Digester<StateMachine extends BaseStateMachine<State>, State> extends Stat
     required void Function(DigesterStateWidgetMapper<State>) handlers,
   }) : _handlers = handlers;
 
-  // Retrieve the state machine dynamically using its Type
-  late final sm = get<StateMachine>();
+  // Retrieve the Trent dynamically using its Type
+  late final sm = get<Trent>();
 
   @override
   Widget build(BuildContext context) {
@@ -21,11 +21,11 @@ class Digester<StateMachine extends BaseStateMachine<State>, State> extends Stat
     _handlers(mapper);
 
     return StreamBuilder<State>(
-      stream: sm.stateStream, // Plug into the state machine's stream
+      stream: sm.stateStream, // Plug into the Trent's stream
       initialData: sm.currState, // Provide the initial state
       builder: (context, snapshot) {
         // Always expect a valid state since the stream is seeded
-        final currentState = snapshot.data as State; // will never be null
+        final currentState = snapshot.data as State; // Will never be null
 
         // Use the mapper to build the widget for the current state or call the "all" handler
         return mapper._build(currentState);

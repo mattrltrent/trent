@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:trent/trent.dart';
 
-/// A generic Alerter widget that listens to alert events from a StateMachine.
-class Alerter<StateMachine extends BaseStateMachine<State>, State> extends StatelessWidget {
+/// A generic Alerter widget that listens to alert events from a Trent.
+class Alerter<Trent extends Trents<State>, State> extends StatelessWidget {
   final void Function(AlerterStateWidgetMapper<State> mapper) _handlers;
   final Widget child;
 
@@ -12,8 +12,8 @@ class Alerter<StateMachine extends BaseStateMachine<State>, State> extends State
     required this.child,
   }) : _handlers = handlers;
 
-  // Retrieve the state machine dynamically using its Type
-  late final sm = get<StateMachine>();
+  // Retrieve the Trent dynamically using its Type
+  late final sm = get<Trent>();
 
   @override
   Widget build(BuildContext context) {

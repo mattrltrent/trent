@@ -1,9 +1,9 @@
-import 'package:example/state_machine.dart';
+import 'package:example/test_trent.dart';
 import 'package:flutter/material.dart';
 import 'package:trent/trent.dart';
 
 void main() {
-  StateMachineManager([TestStateMachine()]).init();
+  TrentManager([AuthTrent()]).init();
   runApp(const MyApp());
 }
 
@@ -17,10 +17,10 @@ class MyApp extends StatelessWidget {
       title: 'example',
       home: Scaffold(
         body: Center(
-          child: Alerter<TestStateMachine, TestStateMachineTypes>(
+          child: Alerter<AuthTrent, AuthTypes>(
             handlers: (mapper) => mapper
               ..all((state) {
-                print("Alert all with value: ${state}");
+                print("Alert all with value: $state");
               })
               ..as<A>((state) {
                 print("Alert A with value: ${state.value}");
@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Digester<TestStateMachine, TestStateMachineTypes>(
+                Digester<AuthTrent, AuthTypes>(
                   handlers: (mapper) {
                     mapper
                       ..all((state) => const Text("All states"))
@@ -45,35 +45,39 @@ class MyApp extends StatelessWidget {
                 ),
                 SizedBox(height: 20),
                 TextButton(
-                  onPressed: () => get<TestStateMachine>().incAFresh(),
+                  onPressed: () => get<AuthTrent>().incAFresh(),
                   child: const Text("emit A, start fresh"),
                 ),
                 TextButton(
-                  onPressed: () => get<TestStateMachine>().incAState(),
+                  onPressed: () => get<AuthTrent>().incAState(),
                   child: const Text("emit A, continue where leftoff"),
                 ),
                 TextButton(
-                  onPressed: () => get<TestStateMachine>().incA99(),
+                  onPressed: () => get<AuthTrent>().incA99(),
                   child: const Text("emit A 99"),
                 ),
                 TextButton(
-                  onPressed: () => get<TestStateMachine>().setA200(),
+                  onPressed: () => get<AuthTrent>().setA200(),
                   child: const Text("SET A 200"),
                 ),
                 TextButton(
-                  onPressed: () => get<TestStateMachine>().switchToB(),
+                  onPressed: () => get<AuthTrent>().switchToB(),
                   child: const Text("switch to B"),
                 ),
                 TextButton(
-                  onPressed: () => get<TestStateMachine>().alertA55(),
+                  onPressed: () => get<AuthTrent>().alertA55(),
                   child: const Text("alert A 55"),
                 ),
                 TextButton(
-                  onPressed: () => get<TestStateMachine>().alertCurrentStateIfA(),
+                  onPressed: () => get<AuthTrent>().alertA55(),
+                  child: const Text("alert B 55"),
+                ),
+                TextButton(
+                  onPressed: () => get<AuthTrent>().alertCurrentStateIfA(),
                   child: const Text("alert current state if A"),
                 ),
                 TextButton(
-                  onPressed: () => get<TestStateMachine>().doDiffThingsIfABC(),
+                  onPressed: () => get<AuthTrent>().doDiffThingsIfABC(),
                   child: const Text("doDiffThingsIfABC"),
                 ),
               ],

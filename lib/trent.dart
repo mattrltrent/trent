@@ -1,10 +1,10 @@
-// logic
-export 'src/logic/state_machine.dart';
-export 'src/logic/state_machine_manager.dart';
+// Logic
+export 'src/logic/trent.dart';
+export 'src/logic/trent_manager.dart';
 
-// re-exported packages
+// Re-exported packages
 export 'package:equatable/equatable.dart';
 
-// widgets
+// Widgets
 export 'src/widgets/digester.dart';
 export 'src/widgets/alerter.dart';
