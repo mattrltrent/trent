@@ -5,12 +5,12 @@ import '../../trent.dart';
 final GetIt _sl = GetIt.instance;
 
 class StateMachineManager {
-  final List<BaseStateMachine> stateMachines;
+  final List<BaseStateMachine> _stateMachines;
 
-  StateMachineManager(this.stateMachines);
+  StateMachineManager(this._stateMachines);
 
   void init() {
-    for (final sm in stateMachines) {
+    for (final sm in _stateMachines) {
       final type = sm.runtimeType;
       _sl.registerLazySingleton<BaseStateMachine>(
         () => sm,

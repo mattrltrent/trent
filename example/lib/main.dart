@@ -19,13 +19,16 @@ class MyApp extends StatelessWidget {
         body: Center(
           child: Alerter<TestStateMachine, TestStateMachineTypes>(
             handlers: (mapper) => mapper
-              ..alert<A>((state) {
+              ..all((state) {
+                print("Alert all with value: ${state}");
+              })
+              ..as<A>((state) {
                 print("Alert A with value: ${state.value}");
               })
-              ..alert<B>((state) {
+              ..as<B>((state) {
                 print("Alert B");
               })
-              ..alert<C>((_) {
+              ..as<C>((_) {
                 print("Alert C");
               }),
             child: Column(
@@ -34,9 +37,10 @@ class MyApp extends StatelessWidget {
                 Digester<TestStateMachine, TestStateMachineTypes>(
                   handlers: (mapper) {
                     mapper
-                      ..state<A>((state) => Text('State A with value: ${state.value}'))
-                      ..state<B>((_) => Text('State B'))
-                      ..state<C>((_) => const Text('State C'));
+                      ..all((state) => const Text("All states"))
+                      ..as<A>((state) => Text('State A with value: ${state.value}'))
+                      ..as<B>((state) => const Text('State B'))
+                      ..as<C>((state) => const Text('State C'));
                   },
                 ),
                 SizedBox(height: 20),
@@ -67,6 +71,10 @@ class MyApp extends StatelessWidget {
                 TextButton(
                   onPressed: () => get<TestStateMachine>().alertCurrentStateIfA(),
                   child: const Text("alert current state if A"),
+                ),
+                TextButton(
+                  onPressed: () => get<TestStateMachine>().doDiffThingsIfABC(),
+                  child: const Text("doDiffThingsIfABC"),
                 ),
               ],
             ),

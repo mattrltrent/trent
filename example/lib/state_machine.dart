@@ -52,4 +52,20 @@ class TestStateMachine extends Trent<TestStateMachineTypes> {
       }, none: () {
         print("none!");
       });
+
+  void doDiffThingsIfABC() {
+    currStateMapper
+      ..all((state) {
+        print("Doing all things");
+      })
+      ..as<A>((state) {
+        print("Doing A things");
+      })
+      ..as<B>((state) {
+        print("Doing B things");
+      })
+      ..as<C>((state) {
+        print("Doing C things");
+      });
+  }
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:trent/src/logic/subtype_mapper.dart';
 import 'package:trent/src/types/option_type.dart';
 
 abstract class BaseStateMachine<Base> {
@@ -17,6 +18,7 @@ abstract class BaseStateMachine<Base> {
 
   // Public getters
   Base get currState => _state;
+  SubtypeMapper<Base> get currStateMapper => SubtypeMapper<Base>(_state);
   Stream<Base> get stateStream => _stateSubject.stream;
   Stream<Base> get alertStream => _alertSubject.stream;
 
@@ -38,7 +40,10 @@ abstract class BaseStateMachine<Base> {
   }
 
   void clearEx(Base state) {
-    _lastStates[state.runtimeType] = Option<Base>.none();
+    // if in there, remove it
+    if (_lastStates[state.runtimeType] != null) {
+      _lastStates.remove(state.runtimeType);
+    }
   }
 
   void clearAllExes() {
