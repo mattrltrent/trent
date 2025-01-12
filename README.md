@@ -1,10 +1,16 @@
-## Trent State Management: Reactive, Simple, Scalable, & Opinionated 🌶️
+<div align="center">
+  
+  <img src="https://raw.githubusercontent.com/mattrltrent/random_assets/refs/heads/main/chili.png" height="100px"></img>
 
-todo: TESTS BADGE + more
+  _Simple, Reactive, Scalable, & Opinionated **State Management Library**_
 
-![unit tests](https://github.com/mattrltrent/trent/actions/workflows/unit_tests.yml/badge.svg)
+  [How To Use: Contrived Calculator Example](#how-to-use-contrived-calculator-example-) • [Full API](#full-api-)
 
-[How To Use: Contrived Calculator Example](#how-to-use-contrived-calculator-example-) • [Full API](#full-api-) • [Example Weather App Code](todo)
+  [![codecov](https://codecov.io/github/mattrltrent/trent/graph/badge.svg?token=VJN63BHZ95)](https://codecov.io/github/mattrltrent/trent) [![unit tests](https://github.com/mattrltrent/trent/actions/workflows/unit_tests.yml/badge.svg)](https://github.com/mattrltrent/trent/actions/workflows/unit_tests.yml)
+
+---
+
+</div>
 
 ### Perks
 

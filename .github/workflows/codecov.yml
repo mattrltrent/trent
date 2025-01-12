@@ -1,4 +1,4 @@
-name: Codecov for Flutter
+name: code coverage
 
 on:
   push:
