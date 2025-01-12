@@ -45,42 +45,18 @@ class MyApp extends StatelessWidget {
                   },
                 ),
                 SizedBox(height: 20),
-                // TextButton(
-                //   onPressed: () => get<AuthTrent>().incAFresh(),
-                //   child: const Text("emit A, start fresh"),
-                // ),
-                // TextButton(
-                //   onPressed: () => get<AuthTrent>().incAState(),
-                //   child: const Text("emit A, continue where leftoff"),
-                // ),
-                // TextButton(
-                //   onPressed: () => get<AuthTrent>().incA99(),
-                //   child: const Text("emit A 99"),
-                // ),
-                // TextButton(
-                //   onPressed: () => get<AuthTrent>().setA200(),
-                //   child: const Text("SET A 200"),
-                // ),
-                // TextButton(
-                //   onPressed: () => get<AuthTrent>().switchToB(),
-                //   child: const Text("switch to B"),
-                // ),
-                // TextButton(
-                //   onPressed: () => get<AuthTrent>().alertA55(),
-                //   child: const Text("alert A 55"),
-                // ),
-                // TextButton(
-                //   onPressed: () => get<AuthTrent>().alertA55(),
-                //   child: const Text("alert B 55"),
-                // ),
-                // TextButton(
-                //   onPressed: () => get<AuthTrent>().alertCurrentStateIfA(),
-                //   child: const Text("alert current state if A"),
-                // ),
-                // TextButton(
-                //   onPressed: () => get<AuthTrent>().doDiffThingsIfABC(),
-                //   child: const Text("doDiffThingsIfABC"),
-                // ),
+                TextButton(
+                  onPressed: () => get<AuthTrent>().testBizFunc1(),
+                  child: const Text("test biz func 1"),
+                ),
+                TextButton(
+                  onPressed: () => get<AuthTrent>().testBizFunc2(),
+                  child: const Text("test biz func 2"),
+                ),
+                TextButton(
+                  onPressed: () => get<AuthTrent>().testBizFunc3(),
+                  child: const Text("test biz func 3"),
+                ),
               ],
             ),
           ),

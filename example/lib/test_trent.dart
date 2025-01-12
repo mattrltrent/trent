@@ -31,4 +31,16 @@ class C extends TestTrentTypes {
 
 class AuthTrent extends Trent<TestTrentTypes> {
   AuthTrent() : super(A(1));
+
+  void testBizFunc1() {
+    emit(A(2));
+  }
+
+  void testBizFunc2() {
+    emit(B(3));
+  }
+
+  void testBizFunc3() {
+    emit(C(4));
+  }
 }
