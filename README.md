@@ -2,6 +2,8 @@
 
 todo: TESTS BADGE + more
 
+![unit tests](https://github.com/mattrltrent/trent/actions/workflows/unit_tests.yml/badge.svg)
+
 [How To Use: Contrived Calculator Example](#how-to-use-contrived-calculator-example-) • [Full API](#full-api-) • [Example Weather App Code](todo)
 
 ### Perks
