@@ -17,6 +17,7 @@ dependencies:
   equatable: ^2.0.7
   get_it: ^8.0.3
   rxdart: ^0.28.0
+  provider: ^6.1.2
 
 dev_dependencies:
   flutter_test:
@@ -61,3 +62,7 @@ flutter:
   # For details regarding fonts in packages, see
   # https://flutter.dev/to/font-from-package
 
+
+screenshots:
+  - description: Trent package logo.
+    path: screenshots/logo.png

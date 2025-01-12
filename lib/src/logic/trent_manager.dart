@@ -1,37 +1,28 @@
-import 'package:get_it/get_it.dart';
-
+import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
 import '../../trent.dart';
 
-final GetIt _sl = GetIt.instance;
-
 /// A manager that initializes and registers all Trents.
-class TrentManager {
-  final List<Trents> _trents;
+class TrentManager extends StatelessWidget {
+  const TrentManager({
+    super.key,
+    required this.child,
+    required this.trents,
+  });
 
-  TrentManager(this._trents);
+  final Widget child;
+  final List<Trent> trents;
 
-  /// Initialize and register all Trents.
-  void init() {
-    for (final sm in _trents) {
-      final type = sm.runtimeType;
-      _sl.registerLazySingleton<Trents>(
-        () => sm,
-        instanceName: type.toString(),
-        dispose: (instance) => instance.dispose(),
-      );
+  @override
+  Widget build(BuildContext context) {
+    for (final sm in trents) {
+      debugPrint('Registering Trent: ${sm.runtimeType}');
     }
+    return MultiProvider(
+      providers: [
+        for (final sm in trents) ChangeNotifierProvider(create: (_) => sm),
+      ],
+      child: child,
+    );
   }
-
-  /// Dispose all Trents.
-  void dispose() {
-    for (final sm in _trents) {
-      sm.dispose();
-    }
-  }
-}
-
-/// Retrieve a Trent by its type.
-T get<T>() {
-  final typeName = T.toString();
-  return _sl.get<Trents>(instanceName: typeName) as T;
 }

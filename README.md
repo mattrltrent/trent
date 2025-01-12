@@ -1,3 +1,5 @@
+**NOTE: Pre-1.0.0 versions are not stable. Not currently recommended for production use.**
+
 <div align="center">
   
   <img src="https://raw.githubusercontent.com/mattrltrent/random_assets/refs/heads/main/chili.png" height="100px"></img>

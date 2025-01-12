@@ -2,30 +2,41 @@ import 'package:flutter/widgets.dart';
 import 'package:trent/trent.dart';
 
 /// A generic Digester widget that listens to state changes from a Trent.
-class Digester<Trent extends Trents<State>, State> extends StatelessWidget {
-  final void Function(DigesterStateWidgetMapper<State> mapper) _handlers;
+class Digester<Trent extends Trents<S>, S> extends StatefulWidget {
+  final void Function(DigesterStateWidgetMapper<S> mapper) handlers;
 
-  Digester({
+  const Digester({
     super.key,
-    required void Function(DigesterStateWidgetMapper<State>) handlers,
-  }) : _handlers = handlers;
+    required this.handlers,
+  });
 
-  // Retrieve the Trent dynamically using its Type
-  late final sm = get<Trent>();
+  @override
+  State<Digester<Trent, S>> createState() => _DigesterState<Trent, S>();
+}
+
+class _DigesterState<Trent extends Trents<S>, S> extends State<Digester<Trent, S>> {
+  late final Trent sm; // Trent instance
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize Trent instance using context
+    sm = read<Trent>(context);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final mapper = DigesterStateWidgetMapper<State>();
+    final mapper = DigesterStateWidgetMapper<S>();
 
     // Register handlers for each state type
-    _handlers(mapper);
+    widget.handlers(mapper);
 
-    return StreamBuilder<State>(
+    return StreamBuilder<S>(
       stream: sm.stateStream, // Plug into the Trent's stream
       initialData: sm.currState, // Provide the initial state
       builder: (context, snapshot) {
         // Always expect a valid state since the stream is seeded
-        final currentState = snapshot.data as State; // Will never be null
+        final currentState = snapshot.data as S; // Will never be null
 
         // Use the mapper to build the widget for the current state or call the "all" handler
         return mapper._build(currentState);

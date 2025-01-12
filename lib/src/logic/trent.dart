@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/widgets.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:trent/src/logic/subtype_mapper.dart';
 import 'package:trent/src/types/option.dart';
 
 /// A generic, abstract Trent that manages state transitions.
-abstract class Trents<Base> {
+abstract class Trents<Base> extends ChangeNotifier {
   Trents(this._state)
       : _stateSubject = BehaviorSubject<Base>.seeded(_state),
         _alertSubject = BehaviorSubject<Base>(),
@@ -49,6 +50,7 @@ abstract class Trents<Base> {
   /// All last states are cleared.
   void reset() {
     clearAllExes();
+    emit(_initialState);
     _updateLastState(_initialState);
   }
 
@@ -58,6 +60,8 @@ abstract class Trents<Base> {
   void emit(Base newState) {
     if (_state != newState) {
       _stateSubject.add(newState);
+      _state = newState;
+      notifyListeners(); // Notify listeners about the change
     }
     _updateLastState(newState);
   }
@@ -104,9 +108,11 @@ abstract class Trents<Base> {
   }
 
   /// Dispose of the Trent.
+  @override
   void dispose() {
     _stateSubject.close();
     _alertSubject.close();
+    super.dispose();
   }
 
   /// Updates the last state map with the new state.
