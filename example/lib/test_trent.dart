@@ -1,11 +1,11 @@
 import 'package:trent/trent.dart';
 
-class AuthTypes extends Equatable {
+class AuthTrentTypes extends Equatable {
   @override
   List<Object> get props => [];
 }
 
-class A extends AuthTypes {
+class A extends AuthTrentTypes {
   final int value;
   A(this.value);
 
@@ -13,7 +13,7 @@ class A extends AuthTypes {
   List<Object> get props => [value];
 }
 
-class B extends AuthTypes {
+class B extends AuthTrentTypes {
   final int value;
   B(this.value);
 
@@ -21,9 +21,52 @@ class B extends AuthTypes {
   List<Object> get props => [];
 }
 
-class C extends AuthTypes {}
+class C extends AuthTrentTypes {}
 
-class AuthTrent extends Trent<AuthTypes> {
+// class AuthTrent extends Trent<AuthTrentTypes> {
+//   AuthTrent() : super(A(1)); // Set initial state
+
+//   void businessLogicHere() {
+//     //
+//     // Business logic here
+//     //
+
+//     // Based on the business logic, you can alter state
+//     // using build-in methods like:
+//     emit(C());
+//     set(A(2));
+//     alert(B(3));
+//     getExStateAs<A>().match(some: (val) {
+//       // Do something
+//     }, none: () {
+//       // Do something
+//     });
+//     getCurrStateAs<A>().match(some: (val) {
+//       // Do something
+//     }, none: () {
+//       // Do something
+//     });
+//     currStateMapper
+//       ..all((state) {
+//         // Do something
+//       })
+//       ..as<A>((state) {
+//         // Do something
+//       })
+//       ..as<B>((state) {
+//         // Do something
+//       })
+//       ..as<C>((state) {
+//         // Do something
+//       });
+
+//     print(currState); // You can also access the raw state
+//   }
+
+//   /// ... More business functions ...
+// }
+
+class AuthTrent extends Trent<AuthTrentTypes> {
   AuthTrent() : super(A(1));
 
   void callSomeBizLogic() {

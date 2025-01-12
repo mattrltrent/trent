@@ -17,25 +17,26 @@ class MyApp extends StatelessWidget {
       title: 'example',
       home: Scaffold(
         body: Center(
-          child: Alerter<AuthTrent, AuthTypes>(
+          child: Alerter<AuthTrent, AuthTrentTypes>(
             handlers: (mapper) => mapper
               ..all((state) {
-                print("Alert all with value: $state");
+                print("Alert received");
               })
               ..as<A>((state) {
-                print("Alert A with value: ${state.value}");
+                print("Alert received of type A");
               })
               ..as<B>((state) {
-                print("Alert B");
+                print("Alert received of type B");
               })
               ..as<C>((_) {
-                print("Alert C");
+                print("Alert received of type C");
               }),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Digester<AuthTrent, AuthTypes>(
+                Digester<AuthTrent, AuthTrentTypes>(
                   handlers: (mapper) {
+                    // get<AuthTrent>().currState = // show this example directly
                     mapper
                       ..all((state) => const Text("All states"))
                       ..as<A>((state) => Text('State A with value: ${state.value}'))

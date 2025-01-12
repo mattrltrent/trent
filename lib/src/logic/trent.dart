@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:trent/src/logic/subtype_mapper.dart';
-import 'package:trent/src/types/option_type.dart';
+import 'package:trent/src/types/option.dart';
 
 /// A generic, abstract Trent that manages state transitions.
 abstract class Trents<Base> {

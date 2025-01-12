@@ -1,0 +1,36 @@
+name: Codecov for Flutter
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test-and-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      # Check out the repository
+      - name: Checkout code
+        uses: actions/checkout@v4.2.1
+
+      # Set up Flutter
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      # Get dependencies
+      - name: Get dependencies
+        run: flutter pub get
+
+      # Run tests with coverage
+      - name: Run tests
+        run: flutter test --machine --coverage
+
+      # Upload coverage to Codecov
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: coverage/lcov.info
