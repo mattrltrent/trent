@@ -12,7 +12,7 @@ jobs:
     steps:
       # Check out the repository
       - name: Checkout code
-        uses: actions/checkout@v4.2.1
+        uses: actions/checkout@v4
 
       # Set up Flutter
       - name: Set up Flutter
@@ -28,9 +28,16 @@ jobs:
       - name: Run tests
         run: flutter test --machine --coverage
 
+      # Debug lcov.info
+      - name: Debug coverage file
+        run: |
+          ls -la coverage/
+          cat coverage/lcov.info || echo "No coverage data found!"
+
       # Upload coverage to Codecov
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage/lcov.info
+          file: coverage/lcov.info
+          verbose: true

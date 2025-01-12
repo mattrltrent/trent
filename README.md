@@ -15,7 +15,7 @@ todo: TESTS BADGE + more
 - 🔥 Includes custom `Option.Some(...)`/`Option.None()` types for safety.
 - 🔥 Clean separation of concerns: UI layer & business logic layer.
 
-### Widget Layer That "Responds" To Your Business Logic States
+### UI Layer That "Responds" To Your Business Logic States
 
 - `Alerter` widget that listens to one-time state `alert(...)`s from your business logic layer.
 - `Digester` widget that builds your UI based on your current business logic state.
@@ -95,7 +95,7 @@ class AuthTrent extends Trent<AuthTypes> {
 
 ## Full API 📚
 
-### Widget Layer Built-in Widgets
+### UI Layer: Built-in Widgets
 
 - `Alerter` widget that listens to one-time state `alert(...)`s from your business logic layer. This is good if your business logic needs to "quickly send off a state without saving it". An example would be you having `Loading`, `Data`, and `WarningNotification` states. You may be in `Data` state, but want to send off a quick `WarningNotification` state without having to throw away your `Data` state. This is what an `alert(WarningNotification(...))` is good for.
 
@@ -138,7 +138,7 @@ class AuthTrent extends Trent<AuthTypes> {
   ),
   ```
 
-### Business Logic Layer Built-in Functions
+### Business Logic Layer: Built-in Functions
 
 - `emit(state)`: Emit a new state **with** the UI reacting.
 
