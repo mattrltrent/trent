@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:trent/src/logic/subtype_mapper.dart';
+import 'package:trent/src/logic/mappers.dart';
 import 'package:trent/src/types/option.dart';
 
 /// A generic, abstract Trent that manages state transitions.
@@ -32,7 +32,7 @@ abstract class Trents<Base> extends ChangeNotifier {
   Base get currState => _state;
 
   /// Getter method for the current state by type.
-  SubtypeMapper<Base> get currStateMapper => SubtypeMapper<Base>(_state);
+  LogicSubTypeMapper<Base> get currStateMapper => LogicSubTypeMapper<Base>(_state);
 
   /// Getter method for the state stream. Usually not used directly.
   Stream<Base> get stateStream => _stateSubject.stream;

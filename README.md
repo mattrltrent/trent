@@ -1,4 +1,4 @@
-**NOTE: Pre-1.0.0 versions are not stable. Not currently recommended for production use.**
+**NOTE: Not currently recommended for production use. STILL BEING BUILT/IMPROVED.**
 
 <div align="center">
   

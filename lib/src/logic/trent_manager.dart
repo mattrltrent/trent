@@ -1,27 +1,34 @@
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
-import '../../trent.dart';
 
-/// A manager that initializes and registers all Trents.
+/// Registers a `Trent` instance for later usage.
+///
+/// This should be done higher up in the widget tree, such as in the `main` function.
+ChangeNotifierProvider register<T extends ChangeNotifier>(
+  T trent,
+) {
+  return ChangeNotifierProvider<T>(
+    create: (_) => trent,
+  );
+}
+
+/// A manager that dynamically registers any number of `Trent` instances.
 class TrentManager extends StatelessWidget {
+  final Widget child;
+
+  /// A list of functions that return typed `Trent` instances.
+  final List<ChangeNotifierProvider> trents;
+
   const TrentManager({
     super.key,
     required this.child,
     required this.trents,
   });
 
-  final Widget child;
-  final List<Trent> trents;
-
   @override
   Widget build(BuildContext context) {
-    for (final sm in trents) {
-      debugPrint('Registering Trent: ${sm.runtimeType}');
-    }
     return MultiProvider(
-      providers: [
-        for (final sm in trents) ChangeNotifierProvider(create: (_) => sm),
-      ],
+      providers: trents,
       child: child,
     );
   }
