@@ -3,7 +3,8 @@ import 'package:trent/src/logic/mappers.dart';
 import 'package:trent/trent.dart';
 
 /// A generic Digester widget that listens to state changes from a Trent.
-class Digester<TrentType extends Trents<StateType>, StateType> extends StatelessWidget {
+class Digester<TrentType extends Trents<StateType>, StateType>
+    extends StatelessWidget {
   /// A callback to build widgets dynamically for each state type.
   final void Function(WidgetSubtypeMapper<StateType> mapper) child;
 

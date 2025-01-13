@@ -47,6 +47,8 @@ class WidgetSubtypeMapper<Base> {
   /// Resolve the widget for the current state.
   Widget resolve() {
     final builder = _widgetBuilders[_state.runtimeType];
-    return builder?.call(_state) ?? _defaultBuilder?.call(_state) ?? const SizedBox.shrink();
+    return builder?.call(_state) ??
+        _defaultBuilder?.call(_state) ??
+        const SizedBox.shrink();
   }
 }

@@ -3,7 +3,8 @@ import 'package:trent/src/logic/mappers.dart';
 import 'package:trent/trent.dart';
 
 /// A generic Alerter widget that listens to alert events and state changes from a Trent.
-class Alerter<TrentType extends Trents<StateType>, StateType> extends StatefulWidget {
+class Alerter<TrentType extends Trents<StateType>, StateType>
+    extends StatefulWidget {
   /// Called when an alert state is emitted, using a mapper.
   final void Function(LogicSubTypeMapper<StateType> mapper)? listenAlerts;
 
@@ -28,14 +29,17 @@ class Alerter<TrentType extends Trents<StateType>, StateType> extends StatefulWi
   });
 
   @override
-  AlerterState<TrentType, StateType> createState() => AlerterState<TrentType, StateType>();
+  AlerterState<TrentType, StateType> createState() =>
+      AlerterState<TrentType, StateType>();
 }
 
-class AlerterState<TrentType extends Trents<StateType>, StateType> extends State<Alerter<TrentType, StateType>> {
+class AlerterState<TrentType extends Trents<StateType>, StateType>
+    extends State<Alerter<TrentType, StateType>> {
   late final TrentType sm = get<TrentType>(context);
   late StateType _previousAlert; // Tracks the previous alert state
   late StateType _previousState; // Tracks the previous normal state
-  bool _hasInitialStateTriggered = false; // Tracks if the initial state has been emitted
+  bool _hasInitialStateTriggered =
+      false; // Tracks if the initial state has been emitted
 
   @override
   void initState() {
@@ -46,7 +50,8 @@ class AlerterState<TrentType extends Trents<StateType>, StateType> extends State
     // Listen to the alert stream
     sm.alertStream.listen((alert) {
       if (widget.listenAlerts != null) {
-        final shouldTrigger = widget.listenAlertsIf?.call(_previousAlert, alert) ?? true;
+        final shouldTrigger =
+            widget.listenAlertsIf?.call(_previousAlert, alert) ?? true;
         if (shouldTrigger) {
           final mapper = LogicSubTypeMapper<StateType>(alert);
           widget.listenAlerts!(mapper);
@@ -63,7 +68,8 @@ class AlerterState<TrentType extends Trents<StateType>, StateType> extends State
       }
 
       if (widget.listenStates != null) {
-        final shouldTrigger = widget.listenStatesIf?.call(_previousState, state) ?? true;
+        final shouldTrigger =
+            widget.listenStatesIf?.call(_previousState, state) ?? true;
         if (shouldTrigger) {
           final mapper = LogicSubTypeMapper<StateType>(state);
           widget.listenStates!(mapper);

@@ -14,7 +14,8 @@ T watch<T extends Trents>(BuildContext context) {
 }
 
 /// Retrieve a map over the current state of a Trent reactively.
-Widget watchMap<T extends Trents<S>, S>(BuildContext context, void Function(WidgetSubtypeMapper<S>) configure) {
+Widget watchMap<T extends Trents<S>, S>(
+    BuildContext context, void Function(WidgetSubtypeMapper<S>) configure) {
   final trent = Provider.of<T>(context, listen: true);
   final mapper = WidgetSubtypeMapper<S>(trent.state);
 
