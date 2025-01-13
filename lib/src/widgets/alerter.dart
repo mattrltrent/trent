@@ -35,12 +35,13 @@ class AlerterState<TrentType extends Trents<StateType>, StateType> extends State
   late final TrentType sm = get<TrentType>(context);
   late StateType _previousAlert; // Tracks the previous alert state
   late StateType _previousState; // Tracks the previous normal state
+  bool _hasInitialStateTriggered = false; // Tracks if the initial state has been emitted
 
   @override
   void initState() {
     super.initState();
-    _previousAlert = sm.currState;
-    _previousState = sm.currState;
+    _previousAlert = sm.state;
+    _previousState = sm.state;
 
     // Listen to the alert stream
     sm.alertStream.listen((alert) {
@@ -56,6 +57,11 @@ class AlerterState<TrentType extends Trents<StateType>, StateType> extends State
 
     // Listen to the state stream
     sm.stateStream.listen((state) {
+      if (!_hasInitialStateTriggered) {
+        _hasInitialStateTriggered = true; // Skip the first seeded state
+        return;
+      }
+
       if (widget.listenStates != null) {
         final shouldTrigger = widget.listenStatesIf?.call(_previousState, state) ?? true;
         if (shouldTrigger) {

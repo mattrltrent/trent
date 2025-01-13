@@ -15,15 +15,15 @@ class Digester<TrentType extends Trents<StateType>, StateType> extends Stateless
   @override
   Widget build(BuildContext context) {
     // Retrieve the Trent instance dynamically from the context
-    final sm = get<TrentType>(context);
-    final mapper = WidgetSubtypeMapper<StateType>(sm.currState);
+    final sm = watch<TrentType>(context);
+    final mapper = WidgetSubtypeMapper<StateType>(sm.state);
 
     // Register handlers for each state type
     child(mapper);
 
     return StreamBuilder<StateType>(
       stream: sm.stateStream, // Plug into the Trent's state stream
-      initialData: sm.currState, // Provide the initial state
+      initialData: sm.state, // Provide the initial state
       builder: (context, snapshot) {
         // Resolve the widget for the current state
         return mapper.resolve();

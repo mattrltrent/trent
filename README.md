@@ -1,12 +1,10 @@
-**NOTE: Not currently recommended for production use. STILL BEING BUILT/IMPROVED.**
-
 <div align="center">
   
   <img src="https://raw.githubusercontent.com/mattrltrent/random_assets/refs/heads/main/chili.png" height="100px"></img>
 
   _Simple, Reactive, Scalable, & Opinionated **State Management Library**_
 
-  [How To Use: Contrived Calculator Example](#how-to-use-contrived-calculator-example-) • [Full API](#full-api-)
+  [Full Trent API](#full-api-) • [Simple Weather App Using Trent Source Code](https://github.com/mattrltrent/trent/tree/main/example)
 
   [![codecov](https://codecov.io/github/mattrltrent/trent/graph/badge.svg?token=VJN63BHZ95)](https://codecov.io/github/mattrltrent/trent) [![unit tests](https://github.com/mattrltrent/trent/actions/workflows/unit_tests.yml/badge.svg)](https://github.com/mattrltrent/trent/actions/workflows/unit_tests.yml)
 
@@ -16,7 +14,6 @@
 
 ### Perks
 
-- 🔥 No `BuildContext` needed — usable in pure Dart.
 - 🔥 Built-in dependency injection and service locator.
 - 🔥 Utilizes efficient stream-based state management.
 - 🔥 Uses [`Equatable`](https://pub.dev/packages/equatable) for customizable equality checks.
@@ -344,6 +341,23 @@ class AuthTrent extends Trent<AuthTypes> {
   // Get the CalculatorTrent instance
   get<CalculatorTrent>().divide(10, 2);
   ```
+- `watchMap<T, S>()`: Map state to specific UI widgets dynamically and reactively.
+
+  ```dart
+  Copy code
+  watchMap<WeatherTrent, WeatherTypes>(context, (mapper) {
+    mapper
+      ..as<Sunny>((state) => Text("Sunny: ${state.temperature}°C"))
+      ..as<Rainy>((state) => Text("Rainy: ${state.rainfall}mm"))
+      ..orElse((_) => const Text("No Data"));
+  });```
+- `watch<T>()`: Reactive Trent retrieval. Use this when the UI needs to rebuild reactively based on state changes.
+
+  ```dart
+  Copy code
+  final weatherTrent = watch<WeatherTrent>(context);
+  print(weatherTrent.state);
+  ```
 - `TrentManager([Trent1(), Trent2(), ...])`: Initialize multiple Trents at once. This should be done as high-up in the widget tree as possible, preferably, in the `main.dart`'s `void main()` function.
 
   ```dart
@@ -351,180 +365,100 @@ class AuthTrent extends Trent<AuthTypes> {
   TrentManager([AuthTrent(), CalculatorTrent(), FeedTrent(), ...]).init();
   ```
 
-- `TrentManager([Trent1(), Trent2(), ...]).dispose()`: Dispose of multiple Trents at once.
+# How to Use
 
-  ```dart
-  // Dispose of multiple Trents at once
-  TrentManager([AuthTrent(), CalculatorTrent(), FeedTrent(), ...]).dispose();
-  ```
+## Step-by-Step Guide
 
-## How to Use: Contrived Calculator Example 🚀
+### 1. Define Your State Types
 
-### 1/4: Organize Your Project
-
-For better organization, consider somewhere creating a `trents` directory to store multiple Trent files for different features:
-
-```txt
-~/lib/trents/
-  calculator_trent.dart
-```
-
-For example, if your app needs to manage calculator logic and authentication logic, you may have:
-
-```txt
-~/lib/trents/
-  calculator_trent.dart
-  auth_trent.dart
-```
-
-For this example, we'll just focus on the calculator logic.
-
-Remember to always add `import 'package:trent/trent.dart';` at the top of each file you create to gain access to the Trent package.
-
-### 2/4: Create The Business Layer
-
-Inside `calculator_trent.dart`, we need to define custom state classes. First, we must define the base state that all other states will extend from.
-
-This state will have no logic, and only includes a default [`Equatable`](https://pub.dev/packages/equatable) implementation that subclasses can override. This is useful for custom equality checks. You put every field you want to compare in the `props` list. For example, if `A(field1: "hello", field2: "world")` and `A(field1: "hello", field2: "world")` should be considered equal, you would override the `props` getter in `A` to return `[field1, field2]`. If only `field1` should be considered, you would return `[field1]`.
-
+Use `EquatableCopyable` for your state types to enable equality comparison and state copying. Implement the `copyWith` method to allow partial updates.
 
 ```dart
-class CalculatorStates extends Equatable {
+abstract class WeatherTypes extends EquatableCopyable<WeatherTypes> {
   @override
-  List<Object> get props => [];
-}
-```
-
-After defining the base state, we can define the states that extend from it. These are the states our calculator will use. They contain our business logic's *data*:
-
-```dart
-class BlankScreen extends CalculatorStates {}
-
-class InvalidCalculation extends CalculatorStates {
-  final String message;
-  InvalidCalculation(this.message);
-
-  @override
-  List<Object> get props => [message];
+  List<Object?> get props => [];
 }
 
-class Division extends CalculatorStates {
-  final int numerator;
-  final int denominator;
-  Division(this.numerator, this.denominator);
+class NoData extends WeatherTypes {
+  @override
+  WeatherTypes copyWith() {
+    return this;
+  }
+}
+
+class Sunny extends WeatherTypes {
+  final double temperature;
+
+  Sunny(this.temperature);
 
   @override
-  List<Object> get props => [numerator, denominator];
-}
-
-class CalculationResult extends CalculatorStates {
-  final double result;
-  CalculationResult(this.result);
+  List<Object?> get props => [temperature];
 
   @override
-  List<Object> get props => [result];
+  WeatherTypes copyWith({double? temperature}) {
+    return Sunny(temperature ?? this.temperature);
+  }
 }
-```
 
-This means that our calculator's "state" can be one of the following:
+class Rainy extends WeatherTypes {
+  final double rainfall;
 
-- `BlankScreen`: The calculator is empty.
-- `InvalidCalculation`: The calculator has an invalid calculation, we may want to alert the user of this!
-- `Division`: The calculator is currently dividing two numbers.
-- `CalculationResult`: The calculator has a result.
+  Rainy(this.rainfall);
 
-Now that we have our states, we can create the Trent class that will manage them. This class will contain our business logic's *logic*. The value inside `super(...)` is the initial state of our calculator.
+  @override
+  List<Object?> get props => [rainfall];
 
-```dart
-class CalculatorTrent extends Trent<CalculatorStates> {
-  CalculatorTrent() : super(BlankScreen());
-}
-```
-
-We can add methods inside this class to manipulate our calculator's state. For example, we can add a method to divide two numbers:
-
-```dart
-class CalculatorTrent extends Trent<CalculatorStates> {
-  CalculatorTrent() : super(BlankScreen());
-
-  void divide(int numerator, int denominator) async {
-    if (denominator == 0) {
-      // Divide by zero error!
-
-      // We should alert the user of this error
-      alert(InvalidCalculation("Cannot divide by zero!"));
-
-      // We emit the blank screen state so the UI can reset
-      emit(BlankScreen());
-    } else {
-      // We will emit the division state, so perhaps the UI
-      // can show "currently doing expensive division"
-      emit(Division(numerator, denominator));
-
-      // We pretend this calculation takes time... (perhaps
-      // it's an API call)
-      await Future.delayed(const Duration(seconds: 2));
-
-      // Once we have the result, we emit it, so that the UI
-      // can show the result
-      emit(CalculationResult(numerator / denominator));
-    }
+  @override
+  WeatherTypes copyWith({double? rainfall}) {
+    return Rainy(rainfall ?? this.rainfall);
   }
 }
 ```
 
-This function can be called from the UI layer to divide two numbers. It will emit the appropriate states based on the result of the division. As you can see, it uses multiple built-in functions such as `alert(...)` and `emit(...)`. There are several of these that have nuanced differences. They are explained in the [Full API](#full-api-) section. In short, `alert(...)` allows us to send an ephemeral state without changing the current state such that the UI can display something like a notification without havint to lose the state it's currently in. `emit(...)` changes the current state and triggers the UI to update. This is ideal for our calculator because we want to show the user the result of the division.
+### 2. Create Your Trent
 
-We may also want to add a method to reset the calculator. It would look like this:
+Extend `Trent` to define your state manager and initialize it with an initial state.
 
 ```dart
-void clear() {
-  // We emit the blank screen state so the UI can reset
-  emit(BlankScreen());
+class WeatherTrent extends Trent<WeatherTypes> {
+  WeatherTrent() : super(NoData());
+
+  void updateToSunny(double temperature) {
+    emit(Sunny(temperature));
+  }
+
+  void updateToRainy(double rainfall) {
+    emit(Rainy(rainfall));
+  }
+
+  void resetState() {
+    reset();
+  }
 }
 ```
 
-### 3/4: Initalize The Business Layer
+### 3. Organize Your Files
 
-Now that we have our business logic layer set up, we need to actually use it. First, however, we need to initialize our `CalculatorTrent`. We can do this in our `main.dart` file:
+For better organization, consider creating a `trents` directory to store Trent files for each feature.
+
+```plaintext
+lib/
+├── main.dart
+├── trents/
+│   ├── weather_trent.dart
+│   ├── auth_trent.dart
+```
+
+### 4. Initialize Your Trents
+
+Initialize your Trents at the top of your widget tree using `TrentManager` and `register`.
 
 ```dart
 void main() {
-  TrentManager([AuthTrent()]).init();
-  runApp(const MyApp());
-}
-```
-
-This will initialize our `CalculatorTrent` so that it can be used in our UI layer. If we had multiple Trents, we would pass them all in the list like so:
-
-```dart
-void main() {
-  TrentManager([AuthTrent(), CalculatorTrent(), FeedTrent(), ...]).init();
-  runApp(const MyApp());
-}
-```
-
-You are also able to dispose Trents if you somehow find yourself needing to do so. This can be done anywhere like so:
-
-```dart
-TrentManager([AuthTrent(), CalculatorTrent(), FeedTrent(), ...]).dispose();
-```
-
-### 4/4: Use The Business Layer In The UI Layer
-
-With our business logic layer set up and initialized, we can now use it in our UI layer. There are 2 primary ways of doing this:
-
-- Using the `Digester` widget.
-- Using the `Alerter` widget.
-
-The `Digester` widget is for building the UI dynamically based on the current state of the business logic. The `Alerter` widget is for listening to one-time ephemeral states that the business logic may send off.
-
-In our case, we might set up our calculator like this (including simplifications):
-
-```dart
-void main() {
-  TrentManager([CalculatorTrent()]).init();
-  runApp(const MyApp());
+  runApp(TrentManager(
+    trents: [register(WeatherTrent())],
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -534,62 +468,79 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Calculator Example',
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Calculator Example'),
-        ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Alerter<CalculatorTrent, CalculatorStates>(
-                handlers: (mapper) => mapper
-                  ..as<InvalidCalculation>((state) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Notification: ${state.message}")),
-                    );
-                  }),
-                child: Digester<CalculatorTrent, CalculatorStates>(
-                  handlers: (mapper) {
-                    mapper
-                      ..as<BlankScreen>((_) => const Text("Blank screen"))
-                      ..as<InvalidCalculation>((state) => Text("Error: ${state.message}"))
-                      ..as<Division>((state) => Text("Currently dividing: ${state.numerator} / ${state.denominator}"))
-                      ..as<CalculationResult>((state) => Text("Result: ${state.result}"));
-                  },
-                ),
-              ),
-              const SizedBox(height: 20),
-              TextButton(
-                onPressed: () => get<CalculatorTrent>().divide(10, 2),
-                child: const Text("Divide 10 by 2"),
-              ),
-              TextButton(
-                onPressed: () => get<CalculatorTrent>().divide(10, 0),
-                child: const Text("Divide by 0 (will show notification)"),
-              ),
-              TextButton(
-                onPressed: () => get<CalculatorTrent>().clear(),
-                child: const Text("Clear"),
-              ),
-            ],
-          ),
-        ),
+        appBar: AppBar(title: const Text('Weather App')),
+        body: WeatherScreen(),
       ),
     );
   }
 }
 ```
 
-If we try to divide by zero, we will see a notification appear at the top of the screen because of the `alert(InvalidCalculation("Cannot divide by zero!"))` call. Then, because of the later `emit(BlankScreen())` call, the UI will reset to the blank screen. If we divide 10 by 2, we will see the UI update to show "Currently dividing: 10 / 2" and then after 2 seconds, it will show "Result: 5.0". We can then also use the `clear()` method to reset the calculator to the blank screen.
+### 5. Use `Alerter` and `Digester` in Your UI
 
-You might notice that we use `get<CalculatorTrent>()` to get the `CalculatorTrent` instance. This is because we have initialized it in the `main.dart` file. If we had multiple Trents, we would use `get<AuthTrent>()`, `get<CalculatorTrent>()`, etc. to get the specific Trent instance we want. This allows us to call our business logic functions from the UI layer and then have the UI update based on the state changes.
+These widgets provide a declarative way to respond to state changes and alerts.
+
+#### Example UI Implementation
+
+```dart
+class WeatherScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Alerter<WeatherTrent, WeatherTypes>(
+      listenAlerts: (mapper) {
+        mapper.as<WeatherAlert>((alert) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Alert: ${alert.message}")),
+          );
+        });
+      },
+      child: Digester<WeatherTrent, WeatherTypes>(
+        child: (mapper) {
+          mapper
+            ..as<Sunny>((state) => Text("Sunny: ${state.temperature}°C"))
+            ..as<Rainy>((state) => Text("Rainy: ${state.rainfall}mm"))
+            ..orElse((_) => const Text("No Data"));
+        },
+      ),
+    );
+  }
+}
+```
+
+### 6. Testing Your Trent
+
+Add tests to ensure your Trent works as expected.
+
+```dart
+void main() {
+  test('WeatherTrent state transitions', () {
+    final trent = WeatherTrent();
+
+    // Initial state
+    expect(trent.state, isA<NoData>());
+
+    // Update to Sunny
+    trent.updateToSunny(25.0);
+    expect(trent.state, isA<Sunny>());
+    expect((trent.state as Sunny).temperature, 25.0);
+
+    // Update to Rainy
+    trent.updateToRainy(50.0);
+    expect(trent.state, isA<Rainy>());
+    expect((trent.state as Rainy).rainfall, 50.0);
+
+    // Reset state
+    trent.resetState();
+    expect(trent.state, isA<NoData>());
+  });
+}
+```
 
 ## Additional Info 📣
 
-- The package is always open to [improvements](https://github.com/mattrltrent/trent/issues), [suggestions](mailto:me@matthewtrent.me), and [additions](https://github.com/mattrltrent/trent/pulls)!
+The package is always open to improvements, suggestions, and additions! Feel free to open issues or pull requests on [GitHub](https://github.com/mattrltrent/trent).
 
-- I'll look through PRs and issues as soon as I can!
+I'll look through PRs and issues as soon as I can!
 
-- [Learn about me](https://matthewtrent.me).
+[Learn about me](https://matthewtrent.me).

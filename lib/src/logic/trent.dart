@@ -29,10 +29,10 @@ abstract class Trents<Base> extends ChangeNotifier {
   final Map<Type, Option<Base>> _lastStates = {};
 
   /// Getter method for the current state.
-  Base get currState => _state;
+  Base get state => _state;
 
   /// Getter method for the current state by type.
-  LogicSubTypeMapper<Base> get currStateMapper => LogicSubTypeMapper<Base>(_state);
+  LogicSubTypeMapper<Base> get stateMap => LogicSubTypeMapper<Base>(_state);
 
   /// Getter method for the state stream. Usually not used directly.
   Stream<Base> get stateStream => _stateSubject.stream;
@@ -122,9 +122,13 @@ abstract class Trents<Base> extends ChangeNotifier {
   }
 }
 
+abstract class EquatableCopyable<T> extends Equatable implements Copyable<T> {}
+
+abstract class Copyable<T> {
+  T copyWith();
+}
+
 /// A generic Trent that manages state transitions.
-abstract class Trent<Base extends Equatable> extends Trents<Base> {
-  Trent(
-    super.state,
-  );
+abstract class Trent<Base extends EquatableCopyable<Base>> extends Trents<Base> {
+  Trent(super.state);
 }

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:trent/trent.dart';
 
@@ -48,15 +49,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: map<WeatherTrent, WeatherTypes>(context, (mapper) {
+        title: watchMap<WeatherTrent, WeatherTypes>(context, (mapper) {
           mapper
-            ..as<Data>((state) => Text("Weather for lat/long: ${state.location}"))
             ..as<NoData>((state) => const Text("Enter Location"))
             ..as<Loading>((state) => const Text("Fetching Weather..."))
             ..orElse((state) => const Text("Weather App"));
         }),
       ),
-      floatingActionButton: watch<WeatherTrent>(context).currState is Data
+      floatingActionButton: watch<WeatherTrent>(context).state is Data
           ? FloatingActionButton(
               onPressed: () => weatherTrent.clear(),
               child: const Icon(Icons.clear),
@@ -75,6 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
             }),
           listenStates: (mapper) => mapper
             ..as<NoData>((state) {
+              print("HELLO!");
               _latitudeController.clear();
               _longitudeController.clear();
             }),
@@ -115,17 +116,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: const Text("Fetch Weather"),
                 ),
                 const SizedBox(height: 16),
-                Digester<WeatherTrent, WeatherTypes>(
-                  child: (mapper) {
-                    mapper
-                      ..as<NoData>((state) => const Text("Please enter location to fetch weather."))
-                      ..as<Loading>((state) => const CircularProgressIndicator())
-                      ..as<Data>((state) => Text(
-                            "${state.location} has temperature ${state.temperature}°C",
-                            style: const TextStyle(fontSize: 18),
-                          ))
-                      ..orElse((state) => const Text("Unknown state"));
-                  },
+                Container(
+                  constraints: BoxConstraints(minHeight: 200),
+                  child: Digester<WeatherTrent, WeatherTypes>(
+                    child: (mapper) {
+                      mapper
+                        ..as<NoData>((state) => const Text("Please enter location to fetch weather."))
+                        ..as<Loading>((state) => const CupertinoActivityIndicator())
+                        ..as<Data>((state) => Text(
+                              "${state.location} has temperature ${state.temperature}°C",
+                              style: const TextStyle(fontSize: 18),
+                            ))
+                        ..orElse((state) => const Text("Unknown state"));
+                    },
+                  ),
                 ),
               ],
             ),
@@ -138,9 +142,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
 // ====== trents/weather_trent.dart ======
 
-class WeatherTypes extends Equatable {
+class WeatherTypes extends EquatableCopyable<WeatherTypes> {
   @override
   List<Object> get props => [];
+
+  @override
+  WeatherTypes copyWith() {
+    return this;
+  }
 }
 
 class NoData extends WeatherTypes {}
@@ -153,6 +162,11 @@ class Error extends WeatherTypes {
 
   @override
   List<Object> get props => [message];
+
+  @override
+  Error copyWith({String? message}) {
+    return Error(message ?? this.message);
+  }
 }
 
 class Data extends WeatherTypes {
