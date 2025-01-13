@@ -4,7 +4,7 @@
 
   _Simple, Reactive, Scalable, & Opinionated **State Management Library**_
 
-  [Full Trent API](#full-api-) • [Simple Weather App Using Trent Source Code](https://github.com/mattrltrent/trent/tree/main/example)
+  [How to Use Full Example](#how-to-use) • [API Docs](#full-api-) • [Simple Weather App Using Trent Source Code](https://github.com/mattrltrent/trent/tree/main/example)
 
   [![codecov](https://codecov.io/github/mattrltrent/trent/graph/badge.svg?token=VJN63BHZ95)](https://codecov.io/github/mattrltrent/trent) [![unit tests](https://github.com/mattrltrent/trent/actions/workflows/unit_tests.yml/badge.svg)](https://github.com/mattrltrent/trent/actions/workflows/unit_tests.yml)
 
@@ -12,13 +12,21 @@
 
 </div>
 
-### Perks
+### Why would you use Trent over other state management libraries?
 
-- 🔥 Built-in dependency injection and service locator.
-- 🔥 Utilizes efficient stream-based state management.
-- 🔥 Uses [`Equatable`](https://pub.dev/packages/equatable) for customizable equality checks.
-- 🔥 Includes custom `Option.Some(...)`/`Option.None()` types for safety.
-- 🔥 Clean separation of concerns: UI layer & business logic layer.
+- Ease of use:
+  - Built-in dependency injection and service locators.
+  - Boasts simple `Alerter` and `Digester` widgets for managing UI layer reactively.
+- Fine-grained control:
+  - Includes special shorthand `watch<T>`, `watchMap<T, S>`, and `get<T>` functions for reduced-boilerplate managing of UI layer.
+  - State output for widgets and functions is "mapped", meaning instead of requiring exhaustive checks like `if (state is A) {...} else if (state is B) {...} else {...}` you just chain `..as<A>((state) {...}..as<B>((state) {...})` etc. invocations non-exhaustively. If you want a catch-all route, chain an `orElse`. If a state isn't included, it's ignored.
+  - Allows listening to one-off "ephemeral" states with `alert` that you don't want saved (ie: sending off a quick notification state without replacing your current state).
+  - Access the last state of a specific type with `getExStateAs<T>`, ensuring you don't lose the value of the state you transitioned away from (ie: Data state -> Loading state -> Reloading Data state with its past data saved).
+  - Uses [`Equatable`](https://pub.dev/packages/equatable) for customizable equality checks.
+- Performance & safety:
+  - Efficient stream-based state management.
+  - Utilizes custom `Option.Some(...)`/`Option.None()` types.
+  - Clean separation of concerns: UI layer & business logic layer.
 
 ### UI Layer That "Responds" To Your Business Logic States
 
@@ -31,10 +39,10 @@
   - Dynamically builds your UI based on the **current state** of your business logic.
   - Provides an intuitive, type-safe way to map each state to a corresponding UI representation.
 
-- **Utility functions**:
-  - **`watch`**: Reactively listens to state changes and rebuilds widgets dynamically.
-  - **`get`**: Retrieves a Trent instance without listening for state changes. The method used for invoking business logic functions.
-  - **`watchMap`**: Reactively maps state to specific widgets dynamically based on type.
+- **(Main) utility functions**:
+  - **`watch<T>`**: Reactively listens to state changes and rebuilds widgets dynamically.
+  - **`get<T>`**: Retrieves a Trent instance without listening for state changes. The method used for invoking business logic functions.
+  - **`watchMap<T, S>`**: Reactively maps state to specific widgets dynamically based on type.
 
 ### Business Logic Layer
 
@@ -104,7 +112,7 @@ class AuthTrent extends Trent<AuthTypes> {
     print(state); 
   }
   
-  /// ... More business functions ...
+  // ... More business functions ...
 }
 ```
 
@@ -388,16 +396,26 @@ class AuthTrent extends Trent<AuthTypes> {
   final weatherTrent = watch<WeatherTrent>(context);
   print(weatherTrent.state);
   ```
-- `TrentManager([Trent1(), Trent2(), ...])`: Initialize multiple Trents at once. This should be done as high-up in the widget tree as possible, preferably, in the `main.dart`'s `void main()` function.
+- `TrentManager` widget's `trents` field using `register` function: Initialize multiple Trents at once. This should be done as high-up in the widget tree as possible, preferably in the `main.dart`'s `void main()` function. If you don't register your Trents, nothing will work.
 
   ```dart
   // Initialize multiple Trents at once
-  TrentManager([AuthTrent(), CalculatorTrent(), FeedTrent(), ...]).init();
+  void main() {
+    runApp(
+      TrentManager(
+        trents: [
+          register(WeatherTrent()),
+          register(OtherTrent()),
+          register(AnotherTrent()),
+          // ...
+        ],
+        child: const MyApp(),
+      ),
+    );
+  }
   ```
 
-# How to Use
-
-## Step-by-Step Guide
+## How to Use
 
 ### 1. Define Your State Types
 
