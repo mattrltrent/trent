@@ -645,8 +645,8 @@ void main() {
 
 ## Additional Info 📣
 
-The package is always open to improvements, suggestions, and additions! Feel free to open issues or pull requests on [GitHub](https://github.com/mattrltrent/trent).
+- The package is always open to improvements, suggestions, and additions! Feel free to open issues or pull requests on [GitHub](https://github.com/mattrltrent/trent).
 
-I'll look through PRs and issues as soon as I can!
+- I'll look through PRs and issues as soon as I can!
 
-[Learn about me](https://matthewtrent.me).
+- [Learn about me](https://matthewtrent.me).
