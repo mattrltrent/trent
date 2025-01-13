@@ -447,6 +447,7 @@ lib/
 ├── trents/
 │   ├── weather_trent.dart
 │   ├── auth_trent.dart
+│   ├── etc. 
 ```
 
 ### 4. Initialize Your Trents
@@ -477,11 +478,79 @@ class MyApp extends StatelessWidget {
 }
 ```
 
-### 5. Use `Alerter` and `Digester` in Your UI
+### 5. Call Business Logic Functions From UI
 
-These widgets provide a declarative way to respond to state changes and alerts.
+To call business logic functions from the UI, use the `get<T>()` utility to retrieve your Trent instance. This allows you to trigger state changes or logic directly from the UI layer.
 
-#### Example UI Implementation
+#### Example
+
+Suppose we have the following Trent class:
+
+```dart
+class WeatherTrent extends Trent<WeatherTypes> {
+  WeatherTrent() : super(NoData());
+
+  void updateToSunny(double temperature) {
+    emit(Sunny(temperature));
+  }
+
+  void updateToRainy(double rainfall) {
+    emit(Rainy(rainfall));
+  }
+
+  void resetState() {
+    reset();
+  }
+}
+```
+
+Here’s how you can invoke its methods from the UI:
+
+```dart
+class WeatherScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ElevatedButton(
+          onPressed: () {
+            final weatherTrent = get<WeatherTrent>(context);
+            weatherTrent.updateToSunny(30.0);
+          },
+          child: const Text("Set to Sunny"),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            final weatherTrent = get<WeatherTrent>(context);
+            weatherTrent.updateToRainy(100.0);
+          },
+          child: const Text("Set to Rainy"),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            final weatherTrent = get<WeatherTrent>(context);
+            weatherTrent.resetState();
+          },
+          child: const Text("Reset Weather State"),
+        ),
+      ],
+    );
+  }
+}
+```
+
+#### How It Works
+
+1. Retrieve the Trent instance: Use `get<T>()` to fetch the Trent instance. We use `get` instead of `watch` because `get` retrieves the Trent instance directly, while `watch` is used for reactive UI updates.
+2. Call methods: Trigger the desired business logic function, such as `updateToSunny`, `updateToRainy`, or `resetState`.
+3. UI updates: The UI automatically reacts to the state changes if `Digester`, `watch`, `watchMap`, or `Alerter` is used in the same widget tree.
+
+### 6. Use `Alerter`, `Digester`, `watch`, and `watchMap` in Your UI
+
+These widgets and functions provide a declarative and flexible way to respond to state changes and alerts. `Alerter` is for listening to alert states, `Digester` for building UI based on the current state, while `watch` and `watchMap` give you more granular control for reactive or dynamic updates.
+
+#### Example UI Implementation with `Alerter` and `Digester`
 
 ```dart
 class WeatherScreen extends StatelessWidget {
@@ -489,11 +558,12 @@ class WeatherScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Alerter<WeatherTrent, WeatherTypes>(
       listenAlerts: (mapper) {
-        mapper.as<WeatherAlert>((alert) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Alert: ${alert.message}")),
-          );
-        });
+        mapper
+          ..as<WeatherAlert>((alert) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Alert: ${alert.message}")),
+            );
+          });
       },
       child: Digester<WeatherTrent, WeatherTypes>(
         child: (mapper) {
@@ -508,7 +578,43 @@ class WeatherScreen extends StatelessWidget {
 }
 ```
 
-### 6. Testing Your Trent
+#### Example with `watch`
+
+```dart
+class WeatherScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final weatherTrent = watch<WeatherTrent>(context);
+    final state = weatherTrent.state;
+
+    if (state is Sunny) {
+      return Text("Sunny: ${state.temperature}°C");
+    } else if (state is Rainy) {
+      return Text("Rainy: ${state.rainfall}mm");
+    } else {
+      return const Text("No Data");
+    }
+  }
+}
+```
+
+#### Example with `watchMap`
+
+```dart
+class WeatherScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return watchMap<WeatherTrent, WeatherTypes>(context, (mapper) {
+      mapper
+        ..as<Sunny>((state) => Text("Sunny: ${state.temperature}°C"))
+        ..as<Rainy>((state) => Text("Rainy: ${state.rainfall}mm"))
+        ..orElse((_) => const Text("No Data"));
+    });
+  }
+}
+```
+
+### 7. Testing Your Trent
 
 Add tests to ensure your Trent works as expected.
 
