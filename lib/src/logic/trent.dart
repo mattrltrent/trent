@@ -96,8 +96,7 @@ abstract class Trents<Base> extends ChangeNotifier {
   /// to return to D(value: 10) instead of D(value: some_value_you_must_define).
   Option<T> getExStateAs<T extends Base>() {
     return _lastStates[T] != null
-        ? _lastStates[T]!.match(
-            some: (v) => Option.some(v as T), none: () => Option<T>.none())
+        ? _lastStates[T]!.match(some: (v) => Option.some(v as T), none: () => Option<T>.none())
         : Option<T>.none();
   }
 
@@ -105,9 +104,7 @@ abstract class Trents<Base> extends ChangeNotifier {
   ///
   /// Will return None if the current state is not of the specified type.
   Option<T> getCurrStateAs<T extends Base>() {
-    return _state.runtimeType == T
-        ? Option.some(_state as T)
-        : Option<T>.none();
+    return _state.runtimeType == T ? Option.some(_state as T) : Option<T>.none();
   }
 
   /// Dispose of the Trent.
@@ -132,7 +129,6 @@ abstract class Copyable<T> {
 }
 
 /// A generic Trent that manages state transitions.
-abstract class Trent<Base extends EquatableCopyable<Base>>
-    extends Trents<Base> {
+abstract class Trent<Base extends EquatableCopyable<Base>> extends Trents<Base> {
   Trent(super.state);
 }

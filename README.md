@@ -41,7 +41,6 @@
 Define custom state classes, then use them in your Trent state manager:
 
 ```dart
-
 //
 //  Classes A, B, and C defined here 
 //
@@ -87,9 +86,9 @@ class AuthTrent extends Trent<AuthTypes> {
 
     // Map over the current state and do things based on the type
     // (not all routes need to be defined)
-    currStateMapper
-      ..all((state) {
-        // Do something
+    stateMap
+      ..orElse((state) {
+        // Do something (doElse run if nothing else more specific hit)
       })
       ..as<A>((state) {
         // Do something
@@ -102,7 +101,7 @@ class AuthTrent extends Trent<AuthTypes> {
       });
 
     // Simply access the raw state for custom manipulation
-    print(currState); 
+    print(state); 
   }
   
   /// ... More business functions ...
@@ -113,26 +112,48 @@ class AuthTrent extends Trent<AuthTypes> {
 
 ### UI Layer: Built-in Widgets
 
-- `Alerter` widget that listens to one-time state `alert(...)`s from your business logic layer. This is good if your business logic needs to "quickly send off a state without saving it". An example would be you having `Loading`, `Data`, and `WarningNotification` states. You may be in `Data` state, but want to send off a quick `WarningNotification` state without having to throw away your `Data` state. This is what an `alert(WarningNotification(...))` is good for.
+- `Alerter` widget that listens to one-time state `alert(...)`s from your business logic layer in `listenAlerts`. This is good if your business logic needs to "quickly send off a state without saving it". An example would be you having `Loading`, `Data`, and `WarningNotification` states. You may be in `Data` state, but want to send off a quick `WarningNotification` state without having to throw away your `Data` state. This is what an `alert(WarningNotification(...))` is good for. `Alerter` can also can listen to regular state updates in `listenStates`. Both can have their listeners programmatically toggled on/off with `listenAlertsIf` and `listenStatesIf` respectively.
 
   ```dart
   // AuthTrent is where your business logic is defined, AuthTrentTypes is
   // the type all your business logic types extend from (in this example `A`, `B`, and `C` states)
   Alerter<AuthTrent, AuthTrentTypes>(
       // Not all handlers need to be defined
-      handlers: (mapper) => mapper
-      ..all((state) {
-        // Always called if defined
-      })
-      ..as<A>((state) {
-        // Called if `A` is alerted
-      })
-      ..as<B>((state) {
-        // Called if `B` is alerted
-      })
-      ..as<C>((_) {
-        // Called if `C` is alerted
-      }),
+      //
+      // This only listens to alerts
+      listenAlerts: (mapper) => mapper
+        ..orElse((state) {
+          // Triggered if nothing more specific is defined
+        })
+        ..as<A>((state) {
+          // Called if `A` is alerted
+        })
+        ..as<B>((state) {
+          // Called if `B` is alerted
+        })
+        ..as<C>((_) {
+          // Called if `C` is alerted
+        }),
+      // Not all handlers need to be defined
+      //
+      // This only listens to states emitted
+      listenStates: (mapper) => mapper
+        ..orElse((state) {
+          // Triggered if nothing more specific is defined
+        })
+        ..as<A>((state) {
+          // Called if `A` is alerted
+        })
+        ..as<B>((state) {
+          // Called if `B` is alerted
+        })
+        ..as<C>((_) {
+          // Called if `C` is alerted
+        }),
+
+        // Only trigger listens if...
+        listenAlertsIf: (oldAlert, newAlert) => true,
+        listenStatesIf: (oldState, newState) => true,
       child: Container(),
   );
   ```
@@ -144,9 +165,9 @@ class AuthTrent extends Trent<AuthTypes> {
   // the type all your business logic types extend from (in this example `A`, `B`, and `C` states)
   Digester<AuthTrent, AuthTrentTypes>(
     // Not all handlers need to be defined
-    handlers: (mapper) {
+    child: (mapper) {
       mapper
-        ..all((state) => const Text("Rendered if no more specific type is defined"))
+        ..orElse((state) => const Text("Rendered if no more specific type is defined"))
         ..as<A>((state) => Text("State is A"))
         ..as<B>((state) => const Text("State is B"))
         ..as<C>((state) => const Text("State is C"));
@@ -182,7 +203,7 @@ class AuthTrent extends Trent<AuthTypes> {
   }
   ```
 
-- `alert(state)`: Alert a temporary state WITHOUT setting it, but being able to listen to it from the `Alerter` widget (for things like notifications).
+- `alert(state)`: Alert a temporary state WITHOUT setting/saving it, but being able to listen to it from the `Alerter` widget (for things like notifications).
 
   ```dart
   class CalculatorTrent extends Trent<CalculatorStates> {
@@ -195,7 +216,7 @@ class AuthTrent extends Trent<AuthTypes> {
   }
   ```
 
-- `getExStateAs<T>()`: This will return the last state of type `T`. Useful for accessing a state you transitioned away from.
+- `getExStateAs<T>()`: This will return the last state of type `T`. Useful for accessing a state you transitioned away from. For example, if you transitioned from `Division` to `Multiplication`, you can still access the last value of the `Division` state after transitioning away from it.
 
   ```dart
   class CalculatorTrent extends Trent<CalculatorStates> {
@@ -235,7 +256,7 @@ class AuthTrent extends Trent<AuthTypes> {
   }
   ```
 
-- `currStateMapper`: Maps over the current state and performs actions based on its type.
+- `stateMap`: Maps over the current state and performs actions based on its type.
 
   ```dart
   class CalculatorTrent extends Trent<CalculatorStates> {
@@ -243,9 +264,9 @@ class AuthTrent extends Trent<AuthTypes> {
 
     // Perform different actions depending on the current state type
     void handleState() {
-      currStateMapper
-        ..all((state) {
-          print("Generic state handler.");
+      stateMap
+        ..orElse((state) {
+          print("Generic state handler. Called if nothing more specific defined.");
         })
         ..as<BlankScreen>((_) {
           print("Calculator is blank.");
@@ -260,7 +281,7 @@ class AuthTrent extends Trent<AuthTypes> {
   }
   ```
 
-- `currState`: Access the raw state for custom manipulation.
+- `state`: Access the raw state for custom manipulation.
 
   ```dart
   class CalculatorTrent extends Trent<CalculatorStates> {
@@ -268,7 +289,7 @@ class AuthTrent extends Trent<AuthTypes> {
 
     // Print the raw state for debugging or custom handling
     void printRawState() {
-      print("Raw state: $currState");
+      print("Raw state: $state");
     }
   }
   ```

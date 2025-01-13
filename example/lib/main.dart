@@ -79,6 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _latitudeController.clear();
               _longitudeController.clear();
             }),
+
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -105,8 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 TextButton(
                   onPressed: () {
                     final latitude = double.tryParse(_latitudeController.text);
-                    final longitude =
-                        double.tryParse(_longitudeController.text);
+                    final longitude = double.tryParse(_longitudeController.text);
 
                     if (latitude != null && longitude != null) {
                       weatherTrent.fetchWeather(latitude, longitude);
@@ -122,10 +122,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Digester<WeatherTrent, WeatherTypes>(
                     child: (mapper) {
                       mapper
-                        ..as<NoData>((state) => const Text(
-                            "Please enter location to fetch weather."))
-                        ..as<Loading>(
-                            (state) => const CupertinoActivityIndicator())
+                        ..as<NoData>((state) => const Text("Please enter location to fetch weather."))
+                        ..as<Loading>((state) => const CupertinoActivityIndicator())
                         ..as<Data>((state) => Text(
                               "${state.location} has temperature ${state.temperature}°C",
                               style: const TextStyle(fontSize: 18),
@@ -194,9 +192,7 @@ class WeatherTrent extends Trent<WeatherTypes> {
     emit(Loading());
     Future.delayed(const Duration(milliseconds: 500), () {
       final mockData = {
-        "temperature": double.parse(
-            (15 + (latitude % 10) + Random().nextDouble() * 5)
-                .toStringAsFixed(1)),
+        "temperature": double.parse((15 + (latitude % 10) + Random().nextDouble() * 5).toStringAsFixed(1)),
         "location": "$latitude, $longitude",
       };
 
