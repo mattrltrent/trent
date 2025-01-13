@@ -22,9 +22,19 @@
 
 ### UI Layer That "Responds" To Your Business Logic States
 
-- `Alerter` widget that listens to one-time state `alert(...)`s from your business logic layer.
-- `Digester` widget that builds your UI based on your current business logic state.
-- `watch`, `get`, and `watchMap` functions to listen and reactively build your UI.
+- **`Alerter` widget**: 
+  - Listens for **alert states** emitted by your business logic using the `alert(...)` method.
+  - Can also listen for **normal state changes** reactively from the business logic layer.
+  - Provides a declarative way to handle temporary or one-time notifications (e.g., error messages or toast notifications) without changing the current state.
+
+- **`Digester` widget**: 
+  - Dynamically builds your UI based on the **current state** of your business logic.
+  - Provides an intuitive, type-safe way to map each state to a corresponding UI representation.
+
+- **Utility functions**:
+  - **`watch`**: Reactively listens to state changes and rebuilds widgets dynamically.
+  - **`get`**: Retrieves a Trent instance without listening for state changes. The method used for invoking business logic functions.
+  - **`watchMap`**: Reactively maps state to specific widgets dynamically based on type.
 
 ### Business Logic Layer
 
