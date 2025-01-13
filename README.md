@@ -150,10 +150,9 @@ class AuthTrent extends Trent<AuthTypes> {
         ..as<C>((_) {
           // Called if `C` is alerted
         }),
-
         // Only trigger listens if...
-        listenAlertsIf: (oldAlert, newAlert) => true,
-        listenStatesIf: (oldState, newState) => true,
+        listenAlertsIf: (oldAlert, newAlert) => true, // oldAlert is wrapped in an Option type because it may not exist
+        listenStatesIf: (oldState, newState) => true, // Both of these are pure types since there will always be an old and new state
       child: Container(),
   );
   ```
@@ -376,7 +375,6 @@ class AuthTrent extends Trent<AuthTypes> {
 - `watchMap<T, S>()`: Map state to specific UI widgets dynamically and reactively.
 
   ```dart
-  Copy code
   watchMap<WeatherTrent, WeatherTypes>(context, (mapper) {
     mapper
       ..as<Sunny>((state) => Text("Sunny: ${state.temperature}°C"))
@@ -512,7 +510,7 @@ class MyApp extends StatelessWidget {
 
 ### 5. Call Business Logic Functions From UI
 
-To call business logic functions from the UI, use the `get<T>()` utility to retrieve your Trent instance. This allows you to trigger state changes or logic directly from the UI layer.
+To call business logic functions from the UI, use the `get<T>()` utility to retrieve your Trent instance. This allows you to trigger state changes or logic directly from the UI layer. This, of course, is assuming you have a `Trent` instance registered in the `TrentManager`.
 
 #### Example
 
@@ -576,7 +574,7 @@ class WeatherScreen extends StatelessWidget {
 
 1. Retrieve the Trent instance: Use `get<T>()` to fetch the Trent instance. We use `get` instead of `watch` because `get` retrieves the Trent instance directly, while `watch` is used for reactive UI updates.
 2. Call methods: Trigger the desired business logic function, such as `updateToSunny`, `updateToRainy`, or `resetState`.
-3. UI updates: The UI automatically reacts to the state changes if `Digester`, `watch`, `watchMap`, or `Alerter` is used in the same widget tree.
+3. UI updates: The UI automatically reacts to the state changes if `Digester`, `watch`, `watchMap`, or `Alerter` are used in the widget tree below where the Trent was registered.
 
 ### 6. Use `Alerter`, `Digester`, `watch`, and `watchMap` in Your UI
 
@@ -596,6 +594,13 @@ class WeatherScreen extends StatelessWidget {
               SnackBar(content: Text("Alert: ${alert.message}")),
             );
           });
+      },
+      listenAlertsIf: (oldState, newState) => true,
+      listenStates: (mapper) {
+        mapper
+          ..as<Sunny>((state) => print(state))
+          ..as<Rainy>((state) => print(state))
+          ..orElse((_) => const Text("No Data"));
       },
       child: Digester<WeatherTrent, WeatherTypes>(
         child: (mapper) {
@@ -648,7 +653,7 @@ class WeatherScreen extends StatelessWidget {
 
 ### 7. Testing Your Trent
 
-Add tests to ensure your Trent works as expected.
+Add tests to ensure your Trent works as expected. Existing tests can be found [here](https://github.com/mattrltrent/trent/tree/main/test).
 
 ```dart
 void main() {

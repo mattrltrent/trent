@@ -9,7 +9,8 @@ class Alerter<TrentType extends Trents<StateType>, StateType>
   final void Function(LogicSubTypeMapper<StateType> mapper)? listenAlerts;
 
   /// Determines whether `listenAlerts` should trigger for a given alert.
-  final bool Function(StateType oldAlert, StateType newAlert)? listenAlertsIf;
+  final bool Function(Option<StateType> oldAlert, StateType newAlert)?
+      listenAlertsIf;
 
   /// Called when the normal state changes, using a mapper.
   final void Function(LogicSubTypeMapper<StateType> mapper)? listenStates;
@@ -36,7 +37,8 @@ class Alerter<TrentType extends Trents<StateType>, StateType>
 class AlerterState<TrentType extends Trents<StateType>, StateType>
     extends State<Alerter<TrentType, StateType>> {
   late final TrentType sm = get<TrentType>(context);
-  late StateType _previousAlert; // Tracks the previous alert state
+  Option<StateType> _previousAlert =
+      Option.none(); // Tracks the previous alert state
   late StateType _previousState; // Tracks the previous normal state
   bool _hasInitialStateTriggered =
       false; // Tracks if the initial state has been emitted
@@ -44,7 +46,6 @@ class AlerterState<TrentType extends Trents<StateType>, StateType>
   @override
   void initState() {
     super.initState();
-    _previousAlert = sm.state;
     _previousState = sm.state;
 
     // Listen to the alert stream
@@ -57,7 +58,7 @@ class AlerterState<TrentType extends Trents<StateType>, StateType>
           widget.listenAlerts!(mapper);
         }
       }
-      _previousAlert = alert;
+      _previousAlert = Option.some(alert);
     });
 
     // Listen to the state stream
