@@ -24,6 +24,7 @@
 
 - `Alerter` widget that listens to one-time state `alert(...)`s from your business logic layer.
 - `Digester` widget that builds your UI based on your current business logic state.
+- `watch`, `get`, and `watchMap` functions to listen and reactively build your UI.
 
 ### Business Logic Layer
 
