@@ -1,3 +1,7 @@
+## 0.0.6
+
+- README image sizing fixed.
+
 ## 0.0.5
 
 - Improved documentation and examples in the README.
