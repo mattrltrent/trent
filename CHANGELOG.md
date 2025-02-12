@@ -1,3 +1,7 @@
+## 0.0.7
+
+- README updates. Specifically, adds link to blog post with more information on the package.
+
 ## 0.0.6
 
 - README image sizing fixed.
