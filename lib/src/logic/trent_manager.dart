@@ -10,7 +10,9 @@ final GetIt _serviceLocator = GetIt.instance;
 ChangeNotifierProvider register<T extends ChangeNotifier>(
   T trent,
 ) {
-  _serviceLocator.registerSingleton<T>(trent);
+  if (!_serviceLocator.isRegistered<T>()) {
+    _serviceLocator.registerSingleton<T>(trent);
+  }
   return ChangeNotifierProvider<T>(
     create: (_) => _serviceLocator.get<T>(),
   );
