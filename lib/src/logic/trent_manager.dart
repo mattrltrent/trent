@@ -13,8 +13,8 @@ ChangeNotifierProvider register<T extends ChangeNotifier>(
   if (!_serviceLocator.isRegistered<T>()) {
     _serviceLocator.registerSingleton<T>(trent);
   }
-  return ChangeNotifierProvider<T>(
-    create: (_) => _serviceLocator.get<T>(),
+  return ChangeNotifierProvider<T>.value(
+    value: _serviceLocator.get<T>(),
   );
 }
 

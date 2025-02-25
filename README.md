@@ -563,21 +563,21 @@ class WeatherScreen extends StatelessWidget {
       children: [
         ElevatedButton(
           onPressed: () {
-            final weatherTrent = get<WeatherTrent>(context);
+            final weatherTrent = get<WeatherTrent>();
             weatherTrent.updateToSunny(30.0);
           },
           child: const Text("Set to Sunny"),
         ),
         ElevatedButton(
           onPressed: () {
-            final weatherTrent = get<WeatherTrent>(context);
+            final weatherTrent = get<WeatherTrent>();
             weatherTrent.updateToRainy(100.0);
           },
           child: const Text("Set to Rainy"),
         ),
         ElevatedButton(
           onPressed: () {
-            final weatherTrent = get<WeatherTrent>(context);
+            final weatherTrent = get<WeatherTrent>();
             weatherTrent.resetState();
           },
           child: const Text("Reset Weather State"),
