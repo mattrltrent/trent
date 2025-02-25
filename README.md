@@ -4,7 +4,7 @@
 
   _Simple, Reactive, Scalable, & Opinionated **State Management Library**_
 
-  [How to Use Full Example](#how-to-use) • [API Docs](#full-api-) • [Simple Weather App Using Trent](https://github.com/mattrltrent/trent/tree/main/example) • [Blog Post With More Info/Examples](https://matthewtrent.me/articles/trent)
+  [How to Use Full Example](#how-to-use) • [API Docs](#full-api-) • [Simple Weather App Using Trent](https://github.com/mattrltrent/trent/tree/main/example) • [Blog Post With More Info/Examples (written for v0.0.7)](https://matthewtrent.me/articles/trent)
 
   [![codecov](https://codecov.io/github/mattrltrent/trent/graph/badge.svg?token=VJN63BHZ95)](https://codecov.io/github/mattrltrent/trent) [![unit tests](https://github.com/mattrltrent/trent/actions/workflows/unit_tests.yml/badge.svg)](https://github.com/mattrltrent/trent/actions/workflows/unit_tests.yml)
 

@@ -1,3 +1,8 @@
+## 0.1.0
+
+- `get<T>(BuildContext)` -> `get<T>()`, removing the need to pass `BuildContext` to `get` method.
+- README updates to update documentation.
+
 ## 0.0.7
 
 - README updates. Specifically, adds link to blog post with more information on the package.
