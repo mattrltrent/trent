@@ -36,7 +36,7 @@ class Alerter<TrentType extends Trents<StateType>, StateType>
 
 class AlerterState<TrentType extends Trents<StateType>, StateType>
     extends State<Alerter<TrentType, StateType>> {
-  late final TrentType sm = get<TrentType>(context);
+  late final TrentType sm = get<TrentType>();
   Option<StateType> _previousAlert =
       Option.none(); // Tracks the previous alert state
   late StateType _previousState; // Tracks the previous normal state

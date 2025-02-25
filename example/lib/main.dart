@@ -45,7 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final weatherTrent = get<WeatherTrent>(context);
+    final weatherTrent = get<WeatherTrent>();
 
     return Scaffold(
       appBar: AppBar(

@@ -3,11 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:trent/src/logic/mappers.dart';
 import 'package:trent/trent.dart';
 
-/// Retrieve a Trent by its type with 1-time value (non-reactive).
-T get<T extends Trents>(BuildContext context) {
-  return Provider.of<T>(context, listen: false);
-}
-
 /// Retrieve a Trent by its type reactively.
 T watch<T extends Trents>(BuildContext context) {
   return Provider.of<T>(context, listen: true);

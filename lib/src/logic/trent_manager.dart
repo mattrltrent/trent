@@ -1,5 +1,8 @@
 import 'package:flutter/widgets.dart';
+import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
+
+final GetIt _serviceLocator = GetIt.instance;
 
 /// Registers a `Trent` instance for later usage.
 ///
@@ -7,9 +10,15 @@ import 'package:provider/provider.dart';
 ChangeNotifierProvider register<T extends ChangeNotifier>(
   T trent,
 ) {
+  _serviceLocator.registerSingleton<T>(trent);
   return ChangeNotifierProvider<T>(
-    create: (_) => trent,
+    create: (_) => _serviceLocator.get<T>(),
   );
+}
+
+/// Retrieve a `Trent` by its type with 1-time value (non-reactive).
+T get<T extends ChangeNotifier>() {
+  return _serviceLocator.get<T>();
 }
 
 /// A manager that dynamically registers any number of `Trent` instances.

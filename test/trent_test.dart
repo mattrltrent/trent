@@ -136,33 +136,30 @@ class _TestAppState extends State<TestApp> {
                   ..as<B>((state) => _counter = 3)
                   ..as<C>((state) => _counter = 4);
               },
-              listenAlertsIf: (oldAlert, newAlert) =>
-                  newAlert is D || newAlert is B,
-              listenStatesIf: (oldState, newState) =>
-                  newState is A || newState is B || newState is C,
+              listenAlertsIf: (oldAlert, newAlert) => newAlert is D || newAlert is B,
+              listenStatesIf: (oldState, newState) => newState is A || newState is B || newState is C,
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton(
-                      onPressed: () => get<SimpleTrent>(context).incrementA(),
+                      onPressed: () => get<SimpleTrent>().incrementA(),
                       child: const Text("Increment A"),
                     ),
                     ElevatedButton(
-                      onPressed: () => get<SimpleTrent>(context).switchToB(),
+                      onPressed: () => get<SimpleTrent>().switchToB(),
                       child: const Text("Switch to B"),
                     ),
                     ElevatedButton(
-                      onPressed: () => get<SimpleTrent>(context).switchToC(),
+                      onPressed: () => get<SimpleTrent>().switchToC(),
                       child: const Text("Switch to C"),
                     ),
                     ElevatedButton(
-                      onPressed: () =>
-                          get<SimpleTrent>(context).triggerDAlert(),
+                      onPressed: () => get<SimpleTrent>().triggerDAlert(),
                       child: const Text("Trigger D Alert"),
                     ),
                     ElevatedButton(
-                      onPressed: () => get<SimpleTrent>(context).alertB(),
+                      onPressed: () => get<SimpleTrent>().alertB(),
                       child: const Text("Alert B"),
                     ),
                   ],
@@ -203,8 +200,7 @@ void main() {
       expect(find.text("Digester State C: 99"), findsOneWidget);
     });
 
-    testWidgets('Alerter updates _counter on alert and state changes',
-        (tester) async {
+    testWidgets('Alerter updates _counter on alert and state changes', (tester) async {
       await tester.pumpWidget(
         TrentManager(
           trents: [register(SimpleTrent())],
