@@ -396,14 +396,19 @@ class AuthTrent extends Trent<AuthTypes> {
   final weatherTrent = watch<WeatherTrent>(context);
   print(weatherTrent.state);
   ```
-- `TrentManager` widget's `trents` field using `register` function: Initialize multiple Trents at once. This should be done as high-up in the widget tree as possible, preferably in the `main.dart`'s `void main()` function. If you don't register your Trents, nothing will work.
+- `TrentManager` widget's `trents` field using `register` function: Initialize multiple Trents at once. This should be done as high-up in the widget tree as possible, preferably in the `main.dart`'s `void main()` function. Trents need to be registered, else things won't work. Alternatively, you can call `register` with your Trents *before* `runApp` is called, however, you still need to wrap your app in a `TrentManager` widget. You can mix and match both techniques.
 
   ```dart
   // Initialize multiple Trents at once
   void main() {
+    // OPTION #1: Call register before runApp
+    register(WeatherTrent()),
+    register(OtherTrent()),
+    register(AnotherTrent()),
     runApp(
       TrentManager(
         trents: [
+          // OPTION #2: Pass Trents directly to TrentManager
           register(WeatherTrent()),
           register(OtherTrent()),
           register(AnotherTrent()),
@@ -500,11 +505,14 @@ lib/
 
 ### 4. Initialize Your Trents
 
-Initialize your Trents at the top of your widget tree using `TrentManager` and `register`.
+Initialize your Trents at the top of your widget tree using `TrentManager` and `register`. 
 
 ```dart
 void main() {
+  // OPTION #1: Call register before runApp
+  register(WeatherTrent());
   runApp(TrentManager(
+    // OPTION #2: Register Trents directly in TrentManager
     trents: [register(WeatherTrent())],
     child: const MyApp(),
   ));

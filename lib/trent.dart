@@ -1,6 +1,6 @@
 // Logic
 export 'src/logic/trent.dart';
-export 'src/logic/trent_manager.dart';
+export 'src/logic/accessors.dart';
 export 'src/logic/accessors.dart';
 
 // Types

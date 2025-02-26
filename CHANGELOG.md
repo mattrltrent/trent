@@ -1,3 +1,8 @@
+## 0.1.1
+
+- Updates `TrentManager`'s `trents` field to be optional.
+- Updates `register` function to be callable outside the widget tree. This is useful if you want to start the lifecycle of your Trents *before* you execute `runApp`, such as in the `main` function.
+
 ## 0.1.0
 
 - `get<T>(BuildContext)` -> `get<T>()`, removing the need to pass `BuildContext` to `get` method.
