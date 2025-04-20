@@ -11,9 +11,8 @@ final GetIt _serviceLocator = GetIt.instance;
 /// we'll store typed providers directly:
 final List<SingleChildWidget> _allTrentProviders = [];
 
-ChangeNotifierProvider register<T extends ChangeNotifier>(
-  T trent,
-) {
+ChangeNotifierProvider register<T extends ChangeNotifier>(T trent,
+    {bool debug = false}) {
   if (!_serviceLocator.isRegistered<T>()) {
     _serviceLocator.registerSingleton<T>(trent);
   }
@@ -22,6 +21,13 @@ ChangeNotifierProvider register<T extends ChangeNotifier>(
   _allTrentProviders.add(
     ChangeNotifierProvider<T>.value(value: trent),
   );
+
+  // if debug is true, we want to start listening to the trent in my web server?
+  if (debug) {
+    trent.addListener(() {
+      debugPrint('Trent updated: $trent');
+    });
+  }
 
   return ChangeNotifierProvider<T>.value(
     value: _serviceLocator.get<T>(),

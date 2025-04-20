@@ -3,7 +3,10 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:trent/src/logic/mappers.dart';
+import 'package:trent/src/types/async_completed.dart';
 import 'package:trent/src/types/option.dart';
+import 'package:async/async.dart';
+import 'package:uuid/uuid.dart';
 
 /// A generic, abstract Trent that manages state transitions.
 abstract class Trents<Base> extends ChangeNotifier {
@@ -13,6 +16,13 @@ abstract class Trents<Base> extends ChangeNotifier {
         _initialState = _state {
     _updateLastState(_state);
   }
+
+  String _sessionToken = const Uuid().v4();
+
+  /// Under-the-hood session token getter incase it's needed for reference.
+  String get sessionToken => _sessionToken;
+
+  final List<CancelableOperation<void>> _ops = [];
 
   /// The current state.
   Base _state;
@@ -48,10 +58,43 @@ abstract class Trents<Base> extends ChangeNotifier {
   /// Reset the Trent to its initial state.
   ///
   /// All last states are cleared.
-  void reset() {
+  void reset({bool cancelAsyncOps = true}) {
+    if (cancelAsyncOps) {
+      for (var op in _ops) {
+        op.cancel();
+      }
+      _ops.clear();
+      _sessionToken = const Uuid().v4();
+    }
     clearAllExes();
     emit(_initialState);
     _updateLastState(_initialState);
+  }
+
+  /// Wrap any Trent function in this method to ensure it can be
+  /// optionally cancelled if the Trent is reset.
+  ///
+  /// This ensures no "leakage" of async operations that are not cancelled
+  /// across Trent resets, and the result is wrapped in an [AsyncCompleted]
+  /// to safely distinguish between completed and cancelled/stale executions.
+  Future<AsyncCompleted<T>> cancelableAsyncOp<T>(
+      Future<T> Function() work) async {
+    final captured = _sessionToken;
+    final op = CancelableOperation<T>.fromFuture(work());
+    _ops.add(op);
+
+    try {
+      final result = await op.valueOrCancellation(null);
+      final isStale = captured != _sessionToken;
+
+      if (result == null || isStale) {
+        return AsyncCompleted.withCancelled();
+      } else {
+        return AsyncCompleted.withCompleted(result);
+      }
+    } finally {
+      _ops.remove(op);
+    }
   }
 
   /// Emit a new state to the stream. This WILL update the UI.

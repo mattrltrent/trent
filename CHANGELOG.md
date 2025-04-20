@@ -1,3 +1,7 @@
+## 0.2.0
+
+- Adds `Future<AsyncCompleted<T>> cancelableAsyncOp<T>(Future<T> Function() work)` wrapper function to `Trent` class, allowing for the cancellation of optional async operations via `void reset({bool cancelAsyncOps = true})`. This helps prevent state leaking across sessions.
+
 ## 0.1.1
 
 - Updates `TrentManager`'s `trents` field to be optional.

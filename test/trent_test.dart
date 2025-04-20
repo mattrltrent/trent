@@ -548,4 +548,91 @@ void main() {
 
     expect(handlerCalled, false); // Handler for B should not have been called
   });
+
+  test("dashboard", () {
+    register(SimpleTrent(), debug: true);
+    final trent = get<SimpleTrent>();
+    trent.emit(A(10));
+    expect(trent.state, isA<A>());
+  });
+
+  test('cancelableAsyncOp returns correct AsyncCompleted', () async {
+    final trent = SimpleTrent();
+
+    // Complete normally
+    final result1 = await trent.cancelableAsyncOp(() async {
+      await Future.delayed(Duration(milliseconds: 10));
+      return 'done';
+    });
+
+    expect(result1.isNothing(), false);
+    expect(result1.unwrap(), 'done');
+
+    // Trigger session reset during async op
+    final result2Future = trent.cancelableAsyncOp(() async {
+      await Future.delayed(Duration(milliseconds: 50));
+      return 'should be stale';
+    });
+
+    trent.reset(); // cancels and changes sessionToken
+
+    // should have returned and updated state now
+    await Future.delayed(Duration(milliseconds: 75));
+
+    final result2 = await result2Future;
+    expect(result2.isNothing(), true);
+
+    // Match-style handling
+    final result3 = await trent.cancelableAsyncOp(() async {
+      await Future.delayed(Duration(milliseconds: 10));
+      return 123;
+    });
+
+    final matchOutput = result3.match(
+      () => 'cancelled',
+      (val) => 'value: $val',
+    );
+    expect(matchOutput, 'value: 123');
+  });
+
+  test(
+      'reset(cancelAsyncOps: true) cancels inflight ops and invalidates session',
+      () async {
+    final trent = SimpleTrent();
+
+    final future = trent.cancelableAsyncOp(() async {
+      await Future.delayed(Duration(milliseconds: 50));
+      return 'should not complete';
+    });
+
+    // Trigger reset before the future completes
+    await Future.delayed(Duration(milliseconds: 10));
+    trent.reset(cancelAsyncOps: true);
+
+    final result = await future;
+    expect(result.isNothing(), true); // Result discarded due to session flip
+  });
+
+  test(
+      'reset(cancelAsyncOps: false) preserves session and allows ops to complete',
+      () async {
+    final trent = SimpleTrent();
+
+    final capturedToken = trent.sessionToken; // assume you expose this for test
+    final future = trent.cancelableAsyncOp(() async {
+      await Future.delayed(Duration(milliseconds: 30));
+      return 'survives reset';
+    });
+
+    // Reset WITHOUT canceling ops
+    await Future.delayed(Duration(milliseconds: 10));
+    trent.reset(cancelAsyncOps: false);
+
+    final result = await future;
+    expect(result.isNothing(), false);
+    expect(result.unwrap(), 'survives reset');
+
+    // Ensure session token didn't change
+    expect(trent.sessionToken, capturedToken);
+  });
 }
