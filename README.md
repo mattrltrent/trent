@@ -2,7 +2,7 @@
   
   <img src="https://raw.githubusercontent.com/mattrltrent/random_assets/refs/heads/main/chili.png" height="100px"></img>
 
-  _Simple, Reactive, Scalable, & Opinionated **State Management Library**_
+  _Simple, Reactive, Scalable, & Opinionated State Management Library_
 
   [How to Use Full Example](#how-to-use) • [API Docs](#full-api-) • [Simple Weather App Using Trent](https://github.com/mattrltrent/trent/tree/main/example) • [Blog Post With More Info/Examples (written for v0.0.7)](https://matthewtrent.me/articles/trent)
 
@@ -27,6 +27,7 @@
   - Efficient stream-based state management.
   - Utilizes custom `Option.Some(...)`/`Option.None()` types.
   - Clean separation of concerns: UI layer & business logic layer.
+  - You can wrap Trent handler functions in `cancelableAsyncOp`s to ensure async calls don't leak across multiple state resets. Further, you can cancel any in-flight async operations that were wrapped in `cancelableAsyncOp` with a Trent's handler functions by calling `reset({bool cancelInFlightAsyncOps = true})` or `cancelInFlightAsyncOps`.
 
 ### UI Layer That "Responds" To Your Business Logic States
 
@@ -327,7 +328,7 @@ class AuthTrent extends Trent<AuthTypes> {
   }
   ```
 
-- `reset()`: Resets the Trent to its initial state.
+- `reset({bool cancelInFlightAsyncOps = true})`: Resets the Trent to its initial state. Optionally, you can cancel any in-flight async operations that were wrapped in `cancelableAsyncOp` with a Trent's handler functions. This is to prevent async calls from leaking across multiple state resets.
 
   ```dart
   class CalculatorTrent extends Trent<CalculatorStates> {
@@ -352,6 +353,23 @@ class AuthTrent extends Trent<AuthTypes> {
     }
   }
   ```
+
+- `cancelInFlightAsyncOps`: Wraps async operations to ensure they don't leak across multiple state resets. This makes them cancelable if you call either `reset({bool cancelInFlightAsyncOps = true})` or `cancelInFlightAsyncOps`.
+
+```dart
+class CalculatorTrent extends Trent<CalculatorStates> {
+  CalculatorTrent() : super(BlankScreen());
+
+  // Perform an async operation safely
+  void performAsyncOperation() {
+    cancelableAsyncOp(() async {
+      // Your async code here
+      await Future.delayed(Duration(seconds: 2));
+      emit(CalculationResult(42));
+    });
+  }
+}
+```
 
 - Access `stateStream` and `alertStream` for custom handling of streams.
 

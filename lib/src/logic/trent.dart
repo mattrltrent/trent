@@ -58,8 +58,10 @@ abstract class Trents<Base> extends ChangeNotifier {
   /// Reset the Trent to its initial state.
   ///
   /// All last states are cleared.
-  void reset({bool cancelAsyncOps = true}) {
-    if (cancelAsyncOps) {
+  ///
+  /// Optionally, cancels all in-flight async ops and resets the session token (further ensuring in-flight async ops get suppressed).
+  void reset({bool cancelInFlightAsyncOps = true}) {
+    if (cancelInFlightAsyncOps) {
       for (var op in _ops) {
         op.cancel();
       }
@@ -69,6 +71,15 @@ abstract class Trents<Base> extends ChangeNotifier {
     clearAllExes();
     emit(_initialState);
     _updateLastState(_initialState);
+  }
+
+  /// Cancels all async operations and resets the session token (further ensuring in-flight async ops get suppressed).
+  void cancelInFlightAsyncOps() {
+    for (var op in _ops) {
+      op.cancel();
+    }
+    _ops.clear();
+    _sessionToken = const Uuid().v4();
   }
 
   /// Wrap any Trent function in this method to ensure it can be

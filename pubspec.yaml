@@ -1,6 +1,6 @@
 name: trent
 description: A Flutter package for simple, scalable, and reactive state management with built-in dependency injection and efficient stream-based state handling.
-version: 0.2.1
+version: 0.3.0
 
 homepage: https://matthewtrent.me
 repository: https://github.com/mattrltrent/trent

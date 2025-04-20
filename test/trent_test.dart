@@ -607,7 +607,7 @@ void main() {
 
     // Trigger reset before the future completes
     await Future.delayed(Duration(milliseconds: 10));
-    trent.reset(cancelAsyncOps: true);
+    trent.reset(cancelInFlightAsyncOps: true);
 
     final result = await future;
     expect(result.isNothing(), true); // Result discarded due to session flip
@@ -626,7 +626,7 @@ void main() {
 
     // Reset WITHOUT canceling ops
     await Future.delayed(Duration(milliseconds: 10));
-    trent.reset(cancelAsyncOps: false);
+    trent.reset(cancelInFlightAsyncOps: false);
 
     final result = await future;
     expect(result.isNothing(), false);
@@ -634,5 +634,46 @@ void main() {
 
     // Ensure session token didn't change
     expect(trent.sessionToken, capturedToken);
+  });
+
+  test('cancelableAsyncOp respects cancelInFlightAsyncOps and session token',
+      () async {
+    final trent = SimpleTrent();
+
+    // ───── Case 1: Cancelled op ─────
+
+    final originalToken = trent.sessionToken;
+
+    final cancelledFuture = trent.cancelableAsyncOp(() async {
+      await Future.delayed(const Duration(milliseconds: 50));
+      return 'cancelled';
+    });
+
+    await Future.delayed(const Duration(milliseconds: 10));
+    trent.cancelInFlightAsyncOps(); // Cancels + flips session token
+
+    final cancelledResult = await cancelledFuture;
+
+    expect(cancelledResult.isNothing(), true);
+    expect(trent.sessionToken, isNot(equals(originalToken)));
+
+    // Trent state should still be A(0)
+    expect(trent.state, isA<A>());
+    expect((trent.state as A).value, equals(0));
+
+    // ───── Case 2: Successful op ─────
+
+    final successToken = trent.sessionToken; // Capture current session
+    final completedFuture = trent.cancelableAsyncOp(() async {
+      await Future.delayed(const Duration(milliseconds: 20));
+      return 'completed';
+    });
+
+    // No cancel this time, just wait
+    final completedResult = await completedFuture;
+
+    expect(completedResult.isNothing(), false);
+    expect(completedResult.unwrap(), 'completed');
+    expect(trent.sessionToken, equals(successToken)); // No session change
   });
 }
