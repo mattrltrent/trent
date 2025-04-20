@@ -11,8 +11,7 @@ final GetIt _serviceLocator = GetIt.instance;
 /// we'll store typed providers directly:
 final List<SingleChildWidget> _allTrentProviders = [];
 
-ChangeNotifierProvider register<T extends ChangeNotifier>(T trent,
-    {bool debug = false}) {
+ChangeNotifierProvider register<T extends ChangeNotifier>(T trent, {bool debug = false}) {
   if (!_serviceLocator.isRegistered<T>()) {
     _serviceLocator.registerSingleton<T>(trent);
   }
@@ -69,8 +68,7 @@ T watch<T extends Trents>(BuildContext context) {
 }
 
 /// Retrieve a map over the current state of a Trent reactively.
-Widget watchMap<T extends Trents<S>, S>(
-    BuildContext context, void Function(WidgetSubtypeMapper<S>) configure) {
+Widget watchMap<T extends Trents<S>, S>(BuildContext context, void Function(WidgetSubtypeMapper<S>) configure) {
   final trent = Provider.of<T>(context, listen: true);
   final mapper = WidgetSubtypeMapper<S>(trent.state);
 

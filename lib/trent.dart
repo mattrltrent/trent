@@ -4,6 +4,7 @@ export 'src/logic/accessors.dart';
 
 // Types
 export 'src/types/option.dart';
+export 'src/types/async_completed.dart';
 
 // Re-exported packages
 export 'package:equatable/equatable.dart';
