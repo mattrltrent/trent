@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:trent/src/logic/mappers.dart';
+import 'package:trent/src/logic/optimism.dart';
 import 'package:trent/src/types/async_completed.dart';
 import 'package:trent/src/types/option.dart';
 import 'package:async/async.dart';
@@ -88,8 +89,7 @@ abstract class Trents<Base> extends ChangeNotifier {
   /// This ensures no "leakage" of async operations that are not cancelled
   /// across Trent resets, and the result is wrapped in an [AsyncCompleted]
   /// to safely distinguish between completed and cancelled/stale executions.
-  Future<AsyncCompleted<T>> cancelableAsyncOp<T>(
-      Future<T> Function() work) async {
+  Future<AsyncCompleted<T>> cancelableAsyncOp<T>(Future<T> Function() work) async {
     final captured = _sessionToken;
     final op = CancelableOperation<T>.fromFuture(work());
     _ops.add(op);
@@ -150,8 +150,7 @@ abstract class Trents<Base> extends ChangeNotifier {
   /// to return to D(value: 10) instead of D(value: some_value_you_must_define).
   Option<T> getExStateAs<T extends Base>() {
     return _lastStates[T] != null
-        ? _lastStates[T]!.match(
-            some: (v) => Option.some(v as T), none: () => Option<T>.none())
+        ? _lastStates[T]!.match(some: (v) => Option.some(v as T), none: () => Option<T>.none())
         : Option<T>.none();
   }
 
@@ -159,9 +158,7 @@ abstract class Trents<Base> extends ChangeNotifier {
   ///
   /// Will return None if the current state is not of the specified type.
   Option<T> getCurrStateAs<T extends Base>() {
-    return _state.runtimeType == T
-        ? Option.some(_state as T)
-        : Option<T>.none();
+    return _state.runtimeType == T ? Option.some(_state as T) : Option<T>.none();
   }
 
   /// Dispose of the Trent.
@@ -186,7 +183,24 @@ abstract class Copyable<T> {
 }
 
 /// A generic Trent that manages state transitions.
-abstract class Trent<Base extends EquatableCopyable<Base>>
-    extends Trents<Base> {
+abstract class Trent<Base extends EquatableCopyable<Base>> extends Trents<Base> {
   Trent(super.state);
+
+  /// Optimistic update helper, available on all Trent instances.
+  OptimisticAttempt<Base, TValue> optimisticUpdate<TValue>({
+    String? tag,
+    required Base Function(Base, TValue) forward,
+    required Base Function(Base, TValue) reverse,
+  }) {
+    final actualTag = tag ?? const Uuid().v4();
+    final attempt = OptimisticAttempt<Base, TValue>(
+      trent: this,
+      tag: actualTag,
+      forward: forward,
+      reverse: reverse,
+    );
+    // Note: .execute(value) must be called by the user to apply the optimistic update.
+    // Do NOT register the attempt here; registration happens in execute().
+    return attempt;
+  }
 }

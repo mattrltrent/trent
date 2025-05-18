@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -136,10 +137,8 @@ class _TestAppState extends State<TestApp> {
                   ..as<B>((state) => _counter = 3)
                   ..as<C>((state) => _counter = 4);
               },
-              listenAlertsIf: (oldAlert, newAlert) =>
-                  newAlert is D || newAlert is B,
-              listenStatesIf: (oldState, newState) =>
-                  newState is A || newState is B || newState is C,
+              listenAlertsIf: (oldAlert, newAlert) => newAlert is D || newAlert is B,
+              listenStatesIf: (oldState, newState) => newState is A || newState is B || newState is C,
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -202,8 +201,7 @@ void main() {
       expect(find.text("Digester State C: 99"), findsOneWidget);
     });
 
-    testWidgets('Alerter updates _counter on alert and state changes',
-        (tester) async {
+    testWidgets('Alerter updates _counter on alert and state changes', (tester) async {
       await tester.pumpWidget(
         TrentManager(
           trents: [register(SimpleTrent())],
@@ -595,9 +593,7 @@ void main() {
     expect(matchOutput, 'value: 123');
   });
 
-  test(
-      'reset(cancelAsyncOps: true) cancels inflight ops and invalidates session',
-      () async {
+  test('reset(cancelAsyncOps: true) cancels inflight ops and invalidates session', () async {
     final trent = SimpleTrent();
 
     final future = trent.cancelableAsyncOp(() async {
@@ -613,9 +609,7 @@ void main() {
     expect(result.isNothing(), true); // Result discarded due to session flip
   });
 
-  test(
-      'reset(cancelAsyncOps: false) preserves session and allows ops to complete',
-      () async {
+  test('reset(cancelAsyncOps: false) preserves session and allows ops to complete', () async {
     final trent = SimpleTrent();
 
     final capturedToken = trent.sessionToken; // assume you expose this for test
@@ -636,8 +630,7 @@ void main() {
     expect(trent.sessionToken, capturedToken);
   });
 
-  test('cancelableAsyncOp respects cancelInFlightAsyncOps and session token',
-      () async {
+  test('cancelableAsyncOp respects cancelInFlightAsyncOps and session token', () async {
     final trent = SimpleTrent();
 
     // ───── Case 1: Cancelled op ─────
@@ -676,4 +669,103 @@ void main() {
     expect(completedResult.unwrap(), 'completed');
     expect(trent.sessionToken, equals(successToken)); // No session change
   });
+
+  test('OptimisticAttempt applies forward, acceptAs, and reject correctly', () {
+    final trent = SimpleTrent();
+    // Initial state is A(0)
+    expect(trent.state, isA<A>());
+    expect((trent.state as A).value, 0);
+
+    final attempt = trent.optimisticUpdate<int>(
+      tag: 'inc',
+      forward: (state, value) => (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+    );
+    attempt.execute(10);
+    expect(trent.state, isA<A>());
+    expect((trent.state as A).value, 10);
+
+    // AcceptAs with a new value (runs reverse then forward)
+    attempt.acceptAs(42);
+    expect(trent.state, isA<A>());
+    expect((trent.state as A).value, 42);
+
+    // New optimistic attempt, then reject
+    final attempt2 = trent.optimisticUpdate<int>(
+      tag: 'inc2',
+      forward: (state, value) => (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+    );
+    attempt2.execute(5);
+    expect((trent.state as A).value, 47);
+    attempt2.reject();
+    expect((trent.state as A).value, 42);
+  });
+
+  test('OptimisticAttempt handles flooding/collisions and async resolution', () async {
+    final trent = SimpleTrent();
+    expect((trent.state as A).value, 0);
+
+    // Start first optimistic attempt (simulates a slow network call)
+    final attempt1 = trent.optimisticUpdate<int>(
+      tag: 'flood',
+      forward: (state, value) => (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+    );
+    attempt1.execute(1);
+    expect((trent.state as A).value, 1);
+
+    // Start a second attempt before the first resolves (flood/collision)
+    final attempt2 = trent.optimisticUpdate<int>(
+      tag: 'flood', // same tag, so it should replace attempt1
+      forward: (state, value) => (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+    );
+    attempt2.execute(10);
+    expect((trent.state as A).value, 10); // corrected from 11 to 10
+
+    // Simulate network delay for both
+    await Future.delayed(const Duration(milliseconds: 10));
+
+    // Only the latest attempt should be able to acceptAs/reject
+    attempt1.acceptAs(99); // Should do nothing, since it's not latest
+    expect((trent.state as A).value, 10);
+
+    attempt2.acceptAs(11); // Accepts with new value
+    expect((trent.state as A).value, 11);
+
+    // Now try flooding with a third attempt, but reject it
+    final attempt3 = trent.optimisticUpdate<int>(
+      tag: 'flood',
+      forward: (state, value) => (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+    );
+    attempt3.execute(100);
+    expect((trent.state as A).value, 111); // updated from 110 to 111
+    await Future.delayed(const Duration(milliseconds: 5));
+    attempt3.reject();
+    expect((trent.state as A).value, 11); // was 10, should be 11
+
+    // Try two different tags (should not collide)
+    final a = trent.optimisticUpdate<int>(
+      tag: 'tagA',
+      forward: (state, value) => (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+    );
+    a.execute(1);
+    final b = trent.optimisticUpdate<int>(
+      tag: 'tagB',
+      forward: (state, value) => (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+    );
+    b.execute(2);
+    expect((trent.state as A).value, 15); // updated from 14 to 15
+    await Future.delayed(const Duration(milliseconds: 5));
+    a.acceptAs(1); // AcceptAs with same value (no change)
+    expect((trent.state as A).value, 15);
+    b.reject();
+    expect((trent.state as A).value, 13);
+  });
+
+  // todo later (needed?): all trent optimistic updates should be wrapped in cancelableAsyncOp
 }
