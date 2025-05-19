@@ -58,6 +58,14 @@ class OptimisticAttempt<TState extends EquatableCopyable<TState>, TValue> {
     }
   }
 
+  /// Accepts the optimistic update as committed (locks in the current value).
+  void accept() {
+    if (!_started || _finished) return;
+    if (_isLatest()) {
+      _finish();
+    }
+  }
+
   void _finish() {
     _finished = true;
     registry.remove(compositeKey);
