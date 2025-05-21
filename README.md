@@ -16,6 +16,7 @@
 
 - Ease of use:
   - Built-in dependency injection and service locators.
+  - Built-in optimistic update functionality.
   - Boasts simple `Alerter` and `Digester` widgets for managing UI layer reactively.
 - Fine-grained control:
   - Includes special shorthand `watch<T>`, `watchMap<T, S>`, and `get<T>` functions for reduced-boilerplate managing of UI layer.
@@ -437,6 +438,91 @@ class CalculatorTrent extends Trent<CalculatorStates> {
     );
   }
   ```
+
+### Optimistic Updates
+
+Optimistic updates let you immediately reflect a change in your UI before an async operation (like a network request) completes. This makes your app feel faster and more responsive. If the async operation fails, the optimistic update can be reverted.
+
+Trent provides a built-in API for optimistic updates via the `optimisticUpdate<T>(...)` method, available on any Trent instance. Optimistic updates are tracked by tag, can be explicitly accepted or rejected, and are automatically cleaned up on `reset()`.
+
+#### Tags
+A tag is a string that identifies the optimistic update. If you run multiple optimistic updates with the same tag, only the latest effect for that tag is present; previous effects are fully reverted before the new one is applied. This ensures repeated or colliding updates don't stack up and cause state confusion. If you don't provide a tag, Trent will generate a universally unique tag for you.
+
+```dart
+// In your Trent subclass:
+optimisticUpdate<int>(
+  tag: "counter",
+  forward: (state, value) => state.copyWith(value: state.value + value),
+  reverse: (state, value) => state.copyWith(value: state.value - value),
+).execute(5); // Immediately applies +5 optimistically
+```
+
+#### Resolving Optimistic Updates
+There are three main ways to resolve an optimistic update:
+
+1. **Accept**: Call `accept()` on the attempt to confirm the optimistic update (e.g., after a successful async operation). This makes the update permanent and removes it from the pending list.
+2. **Accept As**: Call `acceptAs(newValue)` to accept the update but with a new value (runs revert, then applies the new value as a new optimistic update).
+3. **Reject**: Call `reject()` to revert the optimistic update (e.g., if the async operation fails). This will undo the effect and remove it from the pending list.
+
+All of these methods are available on the returned `OptimisticAttempt`:
+
+```dart
+final attempt = optimisticUpdate<int>(
+  tag: "counter",
+  forward: (state, value) => state.copyWith(value: state.value + value),
+  reverse: (state, value) => state.copyWith(value: state.value - value),
+);
+attempt.execute(10); // Apply +10 optimistically
+
+// Later, after async completes:
+attempt.accept(); // Accepts and finalizes
+// or
+attempt.reject(); // Reverts the update
+// or
+attempt.acceptAs(42); // Reverts +10, then applies +42
+```
+
+Optimistic updates are async-safe: if you run multiple with the same tag before accepting, acceptingAs, or rejecting, only the latest is kept and previous ones are reverted before the new one is applied. This prevents flooding/collision issues.
+
+If you always resolve each optimistic attempt (by calling `accept()`, `acceptAs(...)`, or `reject()` on every attempt you create), you will not leak memory or state. The additional cleanup methods (like `rejectAllUnresolvedOptimisticUpdates`) are provided as extra safety for cases where you might forget to resolve, or for bulk cleanup after network failures, app suspends, or other edge cases.
+
+#### Cleanup
+
+To prevent memory leaks or stale updates, Trent provides a cleanup method:
+
+- `rejectAllUnresolvedOptimisticUpdates({Duration? olderThan})`: Rejects all unresolved optimistic updates, or only those older than a given duration. This is useful for cleaning up after network failures, app suspends, or just to ensure your state is fresh.
+
+```dart
+// Reject all unresolved optimistic updates
+trent.rejectAllUnresolvedOptimisticUpdates();
+
+// Reject only those older than 30 seconds
+trent.rejectAllUnresolvedOptimisticUpdates(olderThan: Duration(seconds: 30));
+```
+
+Optimistic updates are also automatically cleaned up on a Trent's `reset(...)` being called.
+
+**Example:**
+
+```dart
+final attempt = optimisticUpdate<int>(
+  tag: "saveDraft",
+  forward: (state, value) => state.copyWith(value: value),
+  reverse: (state, value) => state.copyWith(value: state.value - value),
+);
+attempt.execute(123);
+
+// If the save fails after 10 seconds
+Future.delayed(Duration(seconds: 10), () {
+  attempt.reject();
+});
+
+// Or, to clean up all stale attempts after a while
+trent.rejectAllUnresolvedOptimisticUpdates(olderThan: Duration(seconds: 10));
+```
+
+This system ensures your UI remains responsive, your state stays consistent, and you have full control over optimistic updates and their lifecycle.
+
 
 ## How to Use
 

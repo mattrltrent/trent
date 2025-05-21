@@ -60,7 +60,8 @@ abstract class Trents<Base> extends ChangeNotifier {
   ///
   /// All last states are cleared.
   ///
-  /// Optionally, cancels all in-flight async ops and resets the session token (further ensuring in-flight async ops get suppressed).
+  /// Also cancels all in-flight async ops and resets the session token (further ensuring in-flight async ops get suppressed).
+  /// Additionally, all unresolved optimistic attempts are rejected and cleared.
   void reset({bool cancelInFlightAsyncOps = true}) {
     if (cancelInFlightAsyncOps) {
       for (var op in _ops) {
@@ -69,6 +70,14 @@ abstract class Trents<Base> extends ChangeNotifier {
       _ops.clear();
       _sessionToken = const Uuid().v4();
     }
+    // --- Reject and clear all unresolved optimistic attempts ---
+    final optimisticRegistry = OptimisticAttempt.registry;
+    for (final attempt in optimisticRegistry.values.toList()) {
+      // Only reject if not finished; _finished is private, so use public API
+      attempt.reject();
+    }
+    optimisticRegistry.clear();
+    // --- END NEW ---
     clearAllExes();
     emit(_initialState);
     _updateLastState(_initialState);
@@ -89,7 +98,8 @@ abstract class Trents<Base> extends ChangeNotifier {
   /// This ensures no "leakage" of async operations that are not cancelled
   /// across Trent resets, and the result is wrapped in an [AsyncCompleted]
   /// to safely distinguish between completed and cancelled/stale executions.
-  Future<AsyncCompleted<T>> cancelableAsyncOp<T>(Future<T> Function() work) async {
+  Future<AsyncCompleted<T>> cancelableAsyncOp<T>(
+      Future<T> Function() work) async {
     final captured = _sessionToken;
     final op = CancelableOperation<T>.fromFuture(work());
     _ops.add(op);
@@ -150,7 +160,8 @@ abstract class Trents<Base> extends ChangeNotifier {
   /// to return to D(value: 10) instead of D(value: some_value_you_must_define).
   Option<T> getExStateAs<T extends Base>() {
     return _lastStates[T] != null
-        ? _lastStates[T]!.match(some: (v) => Option.some(v as T), none: () => Option<T>.none())
+        ? _lastStates[T]!.match(
+            some: (v) => Option.some(v as T), none: () => Option<T>.none())
         : Option<T>.none();
   }
 
@@ -158,7 +169,9 @@ abstract class Trents<Base> extends ChangeNotifier {
   ///
   /// Will return None if the current state is not of the specified type.
   Option<T> getCurrStateAs<T extends Base>() {
-    return _state.runtimeType == T ? Option.some(_state as T) : Option<T>.none();
+    return _state.runtimeType == T
+        ? Option.some(_state as T)
+        : Option<T>.none();
   }
 
   /// Dispose of the Trent.
@@ -183,7 +196,8 @@ abstract class Copyable<T> {
 }
 
 /// A generic Trent that manages state transitions.
-abstract class Trent<Base extends EquatableCopyable<Base>> extends Trents<Base> {
+abstract class Trent<Base extends EquatableCopyable<Base>>
+    extends Trents<Base> {
   Trent(super.state);
 
   /// Optimistic update helper, available on all Trent instances.
@@ -202,5 +216,30 @@ abstract class Trent<Base extends EquatableCopyable<Base>> extends Trents<Base> 
     // Note: .execute(value) must be called by the user to apply the optimistic update.
     // Do NOT register the attempt here; registration happens in execute().
     return attempt;
+  }
+
+  /// Rejects all unresolved optimistic attempts. If [olderThan] is supplied,
+  /// only attempts pending longer than [olderThan] are rejected.
+  void rejectAllUnresolvedOptimisticUpdates({Duration? olderThan}) {
+    final now = DateTime.now();
+    final optimisticRegistry = OptimisticAttempt.registry;
+    for (final attempt in optimisticRegistry.values.toList()) {
+      if (olderThan == null) {
+        attempt.reject();
+      } else {
+        final created = attempt.createdAtForTrent;
+        if (created != null && now.difference(created) > olderThan) {
+          attempt.reject();
+        }
+      }
+    }
+    if (olderThan == null) {
+      optimisticRegistry.clear();
+    } else {
+      // Remove only those that were rejected above
+      optimisticRegistry.removeWhere((_, attempt) =>
+          attempt.createdAtForTrent != null &&
+          now.difference(attempt.createdAtForTrent!) > olderThan);
+    }
   }
 }

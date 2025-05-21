@@ -1,40 +1,47 @@
 import 'package:trent/trent.dart';
+import 'package:meta/meta.dart';
 
 class OptimisticAttempt<TState extends EquatableCopyable<TState>, TValue> {
-  final TState Function(TState, TValue) forward;
-  final TState Function(TState, TValue) reverse;
-  final Trent<TState> trent;
+  final TState Function(TState, TValue) _forward;
+  final TState Function(TState, TValue) _reverse;
+  final Trent<TState> _trent;
   final String tag;
-  final String compositeKey;
+  final String _compositeKey;
 
   bool _started = false;
   bool _finished = false;
 
   late TValue? _value;
 
+  DateTime? _createdAt;
+
   OptimisticAttempt({
-    required this.trent,
+    required Trent<TState> trent,
     required this.tag,
-    required this.forward,
-    required this.reverse,
-  }) : compositeKey = "${trent.runtimeType}_$tag";
+    required TState Function(TState, TValue) forward,
+    required TState Function(TState, TValue) reverse,
+  })  : _trent = trent,
+        _reverse = reverse,
+        _forward = forward,
+        _compositeKey = "${trent.runtimeType}_$tag";
 
   /// Call this to apply the optimistic update with a value.
   void execute([TValue? value]) {
     if (_started) return;
     _started = true;
     _value = value;
+    _createdAt = DateTime.now();
 
     // Revert previous attempt with the same tag if it exists and is not this
-    final prev = registry[compositeKey];
+    final prev = registry[_compositeKey];
     if (prev != null && prev != this && prev._started && !prev._finished) {
       final typedPrev = prev as OptimisticAttempt<TState, TValue>;
-      trent.emit(typedPrev.reverse(trent.state, typedPrev._value as TValue));
+      _trent.emit(typedPrev._reverse(_trent.state, typedPrev._value as TValue));
       typedPrev._finish();
     }
 
-    trent.emit(forward(trent.state, value as TValue));
-    registry[compositeKey] = this;
+    _trent.emit(_forward(_trent.state, value as TValue));
+    registry[_compositeKey] = this;
   }
 
   /// Accept the optimistic update with a new value (runs reverse then forward with new value).
@@ -42,9 +49,9 @@ class OptimisticAttempt<TState extends EquatableCopyable<TState>, TValue> {
     if (!_started || _finished) return;
     if (_isLatest()) {
       // revert optimistic
-      trent.emit(reverse(trent.state, _value as TValue));
+      _trent.emit(_reverse(_trent.state, _value as TValue));
       // apply new value
-      trent.emit(forward(trent.state, value));
+      _trent.emit(_forward(_trent.state, value));
       _finish();
     }
   }
@@ -53,7 +60,7 @@ class OptimisticAttempt<TState extends EquatableCopyable<TState>, TValue> {
   void reject() {
     if (!_started || _finished) return;
     if (_isLatest()) {
-      trent.emit(reverse(trent.state, _value as TValue));
+      _trent.emit(_reverse(_trent.state, _value as TValue));
       _finish();
     }
   }
@@ -68,10 +75,18 @@ class OptimisticAttempt<TState extends EquatableCopyable<TState>, TValue> {
 
   void _finish() {
     _finished = true;
-    registry.remove(compositeKey);
+    registry.remove(_compositeKey);
   }
 
-  bool _isLatest() => registry[compositeKey] == this;
+  bool _isLatest() => registry[_compositeKey] == this;
 
   static final Map<String, OptimisticAttempt> registry = {};
+
+  bool get isFinished => _finished;
+
+  /// For internal use by Trent only. Not for public consumption.
+  DateTime? get createdAtForTrent => _createdAt;
+
+  @visibleForTesting
+  set createdAtForTest(DateTime dt) => _createdAt = dt;
 }

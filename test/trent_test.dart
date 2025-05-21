@@ -137,8 +137,10 @@ class _TestAppState extends State<TestApp> {
                   ..as<B>((state) => _counter = 3)
                   ..as<C>((state) => _counter = 4);
               },
-              listenAlertsIf: (oldAlert, newAlert) => newAlert is D || newAlert is B,
-              listenStatesIf: (oldState, newState) => newState is A || newState is B || newState is C,
+              listenAlertsIf: (oldAlert, newAlert) =>
+                  newAlert is D || newAlert is B,
+              listenStatesIf: (oldState, newState) =>
+                  newState is A || newState is B || newState is C,
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -201,7 +203,8 @@ void main() {
       expect(find.text("Digester State C: 99"), findsOneWidget);
     });
 
-    testWidgets('Alerter updates _counter on alert and state changes', (tester) async {
+    testWidgets('Alerter updates _counter on alert and state changes',
+        (tester) async {
       await tester.pumpWidget(
         TrentManager(
           trents: [register(SimpleTrent())],
@@ -593,7 +596,9 @@ void main() {
     expect(matchOutput, 'value: 123');
   });
 
-  test('reset(cancelAsyncOps: true) cancels inflight ops and invalidates session', () async {
+  test(
+      'reset(cancelAsyncOps: true) cancels inflight ops and invalidates session',
+      () async {
     final trent = SimpleTrent();
 
     final future = trent.cancelableAsyncOp(() async {
@@ -609,7 +614,9 @@ void main() {
     expect(result.isNothing(), true); // Result discarded due to session flip
   });
 
-  test('reset(cancelAsyncOps: false) preserves session and allows ops to complete', () async {
+  test(
+      'reset(cancelAsyncOps: false) preserves session and allows ops to complete',
+      () async {
     final trent = SimpleTrent();
 
     final capturedToken = trent.sessionToken; // assume you expose this for test
@@ -630,7 +637,8 @@ void main() {
     expect(trent.sessionToken, capturedToken);
   });
 
-  test('cancelableAsyncOp respects cancelInFlightAsyncOps and session token', () async {
+  test('cancelableAsyncOp respects cancelInFlightAsyncOps and session token',
+      () async {
     final trent = SimpleTrent();
 
     // ───── Case 1: Cancelled op ─────
@@ -678,8 +686,10 @@ void main() {
 
     final attempt = trent.optimisticUpdate<int>(
       tag: 'inc',
-      forward: (state, value) => (state as A).copyWith(value: state.value + value),
-      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
     );
     attempt.execute(10);
     expect(trent.state, isA<A>());
@@ -693,8 +703,10 @@ void main() {
     // New optimistic attempt, then reject
     final attempt2 = trent.optimisticUpdate<int>(
       tag: 'inc2',
-      forward: (state, value) => (state as A).copyWith(value: state.value + value),
-      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
     );
     attempt2.execute(5);
     expect((trent.state as A).value, 47);
@@ -702,15 +714,18 @@ void main() {
     expect((trent.state as A).value, 42);
   });
 
-  test('OptimisticAttempt handles flooding/collisions and async resolution', () async {
+  test('OptimisticAttempt handles flooding/collisions and async resolution',
+      () async {
     final trent = SimpleTrent();
     expect((trent.state as A).value, 0);
 
     // Start first optimistic attempt (simulates a slow network call)
     final attempt1 = trent.optimisticUpdate<int>(
       tag: 'flood',
-      forward: (state, value) => (state as A).copyWith(value: state.value + value),
-      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
     );
     attempt1.execute(1);
     expect((trent.state as A).value, 1);
@@ -718,8 +733,10 @@ void main() {
     // Start a second attempt before the first resolves (flood/collision)
     final attempt2 = trent.optimisticUpdate<int>(
       tag: 'flood', // same tag, so it should replace attempt1
-      forward: (state, value) => (state as A).copyWith(value: state.value + value),
-      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
     );
     attempt2.execute(10);
     expect((trent.state as A).value, 10); // corrected from 11 to 10
@@ -737,8 +754,10 @@ void main() {
     // Now try flooding with a third attempt, but reject it
     final attempt3 = trent.optimisticUpdate<int>(
       tag: 'flood',
-      forward: (state, value) => (state as A).copyWith(value: state.value + value),
-      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
     );
     attempt3.execute(100);
     expect((trent.state as A).value, 111); // updated from 110 to 111
@@ -749,14 +768,18 @@ void main() {
     // Try two different tags (should not collide)
     final a = trent.optimisticUpdate<int>(
       tag: 'tagA',
-      forward: (state, value) => (state as A).copyWith(value: state.value + value),
-      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
     );
     a.execute(1);
     final b = trent.optimisticUpdate<int>(
       tag: 'tagB',
-      forward: (state, value) => (state as A).copyWith(value: state.value + value),
-      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
     );
     b.execute(2);
     expect((trent.state as A).value, 14);
@@ -767,15 +790,19 @@ void main() {
     expect((trent.state as A).value, 12);
   });
 
-  test('OptimisticAttempt accept, reject, acceptAs with same and different tags', () async {
+  test(
+      'OptimisticAttempt accept, reject, acceptAs with same and different tags',
+      () async {
     final trent = SimpleTrent();
     expect((trent.state as A).value, 0);
 
     // Same tag: accept, reject, acceptAs
     final att1 = trent.optimisticUpdate<int>(
       tag: 'foo',
-      forward: (state, value) => (state as A).copyWith(value: state.value + value),
-      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
     );
     att1.execute(5);
     expect((trent.state as A).value, 5);
@@ -783,8 +810,10 @@ void main() {
     // New attempt with same tag should NOT revert previous
     final att2 = trent.optimisticUpdate<int>(
       tag: 'foo',
-      forward: (state, value) => (state as A).copyWith(value: state.value + value),
-      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
     );
     att2.execute(10);
     expect((trent.state as A).value, 15); // 5 (locked) + 10
@@ -794,8 +823,10 @@ void main() {
     // Now test acceptAs
     final att3 = trent.optimisticUpdate<int>(
       tag: 'foo',
-      forward: (state, value) => (state as A).copyWith(value: state.value + value),
-      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
     );
     att3.execute(2);
     expect((trent.state as A).value, 7);
@@ -806,15 +837,19 @@ void main() {
     // Now test with different tags (should stack)
     final attA = trent.optimisticUpdate<int>(
       tag: 'A',
-      forward: (state, value) => (state as A).copyWith(value: state.value + value),
-      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
     );
     attA.execute(1);
     expect((trent.state as A).value, 26);
     final attB = trent.optimisticUpdate<int>(
       tag: 'B',
-      forward: (state, value) => (state as A).copyWith(value: state.value + value),
-      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
     );
     attB.execute(2);
     expect((trent.state as A).value, 28);
@@ -824,8 +859,10 @@ void main() {
     // Now new B should not revert previous
     final attB2 = trent.optimisticUpdate<int>(
       tag: 'B',
-      forward: (state, value) => (state as A).copyWith(value: state.value + value),
-      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
     );
     attB2.execute(3);
     expect((trent.state as A).value, 30);
@@ -833,15 +870,18 @@ void main() {
     expect((trent.state as A).value, 27);
   });
 
-  test('OptimisticAttempt: multiple pending, flood, and fallback to previous', () async {
+  test('OptimisticAttempt: multiple pending, flood, and fallback to previous',
+      () async {
     final trent = SimpleTrent();
     expect((trent.state as A).value, 0);
 
     // Start first optimistic attempt (pending)
     final att1 = trent.optimisticUpdate<int>(
       tag: 'flood',
-      forward: (state, value) => (state as A).copyWith(value: state.value + value),
-      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
     );
     att1.execute(1);
     expect((trent.state as A).value, 1);
@@ -849,8 +889,10 @@ void main() {
     // Start a second attempt before the first resolves (flood/collision)
     final att2 = trent.optimisticUpdate<int>(
       tag: 'flood', // same tag, so it should replace attempt1
-      forward: (state, value) => (state as A).copyWith(value: state.value + value),
-      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
     );
     att2.execute(10);
     expect((trent.state as A).value, 10); // corrected from 11 to 10
@@ -858,15 +900,219 @@ void main() {
     // Start a third optimistic attempt (floods, replaces att2)
     final att3 = trent.optimisticUpdate<int>(
       tag: 'flood',
-      forward: (state, value) => (state as A).copyWith(value: state.value + value),
-      reverse: (state, value) => (state as A).copyWith(value: state.value - value),
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
     );
     att3.execute(100);
     expect((trent.state as A).value, 100);
+    expect(att2.isFinished, true);
+    expect(att3.isFinished, false);
 
-    // att3 fails (reject)
+    // Accept/reject previous attempts should do nothing
+    att1.reject();
+    att2.accept();
+    expect((trent.state as A).value, 100);
+
+    // Only att3 can affect state now
     att3.reject();
-    // Should revert att3's effect, fallback to base state (not att2's effect)
+    expect((trent.state as A).value, 0);
+  });
+
+  test('OptimisticAttempt: assorted', () async {
+    final trent = SimpleTrent();
+    expect((trent.state as A).value, 0);
+
+    final oa1 = trent.optimisticUpdate<int>(
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
+    )..execute(2);
+    oa1.accept();
+    expect((trent.state as A).value, 2);
+
+    final oa2 = trent.optimisticUpdate<int>(
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
+    )..execute(2);
+    oa2.accept();
+    expect((trent.state as A).value, 4);
+
+    final oa3 = trent.optimisticUpdate<int>(
+      tag: "foo",
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
+    )..execute(2);
+    expect((trent.state as A).value, 6);
+
+    final oa4 = trent.optimisticUpdate<int>(
+      tag: "foo",
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
+    )..execute(3);
+    oa4.accept();
+    expect((trent.state as A).value, 7);
+  });
+
+  test('OptimisticAttempt: async flood', () async {
+    final trent = SimpleTrent();
+    expect((trent.state as A).value, 0);
+
+    // Start first optimistic attempt (simulates a slow network call)
+    final attempt1 = trent.optimisticUpdate<int>(
+      tag: 'flood',
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
+    );
+    attempt1.execute(1);
+    expect((trent.state as A).value, 1);
+
+    // Start a second attempt before the first resolves (flood/collision)
+    final attempt2 = trent.optimisticUpdate<int>(
+      tag: 'flood', // same tag, so it should replace attempt1
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
+    );
+    attempt2.execute(10);
+    expect((trent.state as A).value, 10);
+
+    attempt2.reject();
+    attempt1.accept();
+    expect((trent.state as A).value, 0);
+  });
+
+  test('Trent.rejectAllUnresolvedOptimisticUpdates rejects all and by duration',
+      () async {
+    final trent = SimpleTrent();
+    expect((trent.state as A).value, 0);
+
+    // Create two optimistic attempts, one old, one new
+    final attOld = trent.optimisticUpdate<int>(
+      tag: 'old',
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
+    );
+    attOld.execute(5);
+    // Manually backdate createdAt to simulate age
+    attOld.createdAtForTest =
+        DateTime.now().subtract(const Duration(seconds: 10));
+
+    final attNew = trent.optimisticUpdate<int>(
+      tag: 'new',
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
+    );
+    attNew.execute(10);
+    // attNew.createdAt is now
+
+    expect((trent.state as A).value, 15);
+
+    // Reject only those older than 5 seconds (should only reject attOld)
+    trent.rejectAllUnresolvedOptimisticUpdates(
+        olderThan: const Duration(seconds: 5));
+    // attOld reverted, attNew remains
+    expect((trent.state as A).value, 10);
+    // attOld should be finished, attNew not
+    expect(attOld.isFinished, true);
+    expect(attNew.isFinished, false);
+
+    // Now reject all remaining
+    trent.rejectAllUnresolvedOptimisticUpdates();
+    expect((trent.state as A).value, 0);
+    expect(attNew.isFinished, true);
+  });
+
+  test(
+      'OptimisticAttempt is async-safe: flooding/collision keeps only latest and reverts previous',
+      () async {
+    final trent = SimpleTrent();
+    expect((trent.state as A).value, 0);
+
+    // First optimistic attempt with tag 'flood'
+    final att1 = trent.optimisticUpdate<int>(
+      tag: 'flood',
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
+    );
+    att1.execute(1);
+    expect((trent.state as A).value, 1);
+
+    // Second attempt with same tag before accepting/rejecting previous
+    final att2 = trent.optimisticUpdate<int>(
+      tag: 'flood',
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
+    );
+    att2.execute(10);
+    // att1 should be reverted, att2 applied
+    expect((trent.state as A).value, 10);
+    expect(att1.isFinished, true);
+    expect(att2.isFinished, false);
+
+    // Third attempt with same tag
+    final att3 = trent.optimisticUpdate<int>(
+      tag: 'flood',
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
+    );
+    att3.execute(100);
+    expect((trent.state as A).value, 100);
+    expect(att2.isFinished, true);
+    expect(att3.isFinished, false);
+
+    // Accept/reject previous attempts should do nothing
+    att1.reject();
+    att2.accept();
+    expect((trent.state as A).value, 100);
+
+    // Only att3 can affect state now
+    att3.reject();
+    expect((trent.state as A).value, 0);
+  });
+
+  test('OptimisticAttempt: accept, acceptAs, reject before execute are no-ops',
+      () {
+    final trent = SimpleTrent();
+    final att = trent.optimisticUpdate<int>(
+      tag: 'noop',
+      forward: (state, value) =>
+          (state as A).copyWith(value: state.value + value),
+      reverse: (state, value) =>
+          (state as A).copyWith(value: state.value - value),
+    );
+    // Call before execute
+    att.accept();
+    att.acceptAs(42);
+    att.reject();
+    // State should remain unchanged
+    expect((trent.state as A).value, 0);
+    expect(att.isFinished, false);
+    // Now execute and check normal behavior
+    att.execute(5);
+    expect((trent.state as A).value, 5);
+    att.reject();
     expect((trent.state as A).value, 0);
   });
 }

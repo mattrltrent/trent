@@ -1,3 +1,7 @@
+## 0.4.0
+
+- Adds optimistic updates.
+
 ## 0.3.0
 
 - Adds `cancelableAsyncOp` to `Trent` class, allowing for the cancellation of optional async operations via `void reset({bool cancelInFlightAsyncOps = true})` or `cancelInFlightAsyncOps`. This helps prevent state leaking across sessions.
